@@ -48,6 +48,18 @@ class FourVectorArray:
     def __len__(self):
         return len(self.bunch)
 
+    @property
+    def px(self):
+        return np.cos(self.phi) * self.pt
+
+    @property
+    def py(self):
+        return np.sin(self.phi) * self.pt
+
+    @property
+    def pz(self):
+        return np.sinh(self.eta) * self.pt
+
 
 def is_array(a):
     """
@@ -78,6 +90,30 @@ def calc_dphi(phi1, phi2):
 def calc_dr(eta1, phi1, eta2, phi2):
     return np.sqrt((eta1-eta2)**2 + calc_dphi(phi1, phi2)**2)
 
+
+def calculate_mt_rt(jets, met, metphi):
+    met_x = np.cos(metphi) * met
+    met_y = np.sin(metphi) * met
+    jet_x = np.cos(jets.phi) * jets.pt
+    jet_y = np.sin(jets.phi) * jets.pt
+    # jet_e = np.sqrt(jets.mass2 + jets.pt**2)
+    # m^2 + pT^2 = E^2 - pT^2 - pz^2 + pT^2 = E^2 - pz^2
+    jet_e = np.sqrt(jets.energy**2 - jets.pz**2)
+    mt = np.sqrt( (jet_e + met)**2 - (jet_x + met_x)**2 - (jet_y + met_y)**2 )
+    rt = met / mt
+    return mt, rt
+
+def calculate_mt(jets, met, metphi):
+    metx = np.cos(metphi) * met
+    mety = np.sin(metphi) * met
+    # Actually np.sqrt(jets.mass2 + jets.pt**2), 
+    # but mass2 = energy**2 - pt**2 - pz**2
+    jets_transverse_e = np.sqrt(jets.energy**2 - jets.pz**2)
+    mt = np.sqrt(
+        (jets_transverse_e + met)**2
+        - (jets.px + metx)**2 - (jets.py + mety)**2
+        )
+    return mt
 
 def preselection(event):
     if len(event[b'JetsAK8.fCoordinates.fPt']) == 0:
@@ -259,29 +295,44 @@ def iter_rootfiles_umd(rootfiles):
             yield tmpfile
 
 
-def main():
+'''def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', type=str, choices=['signal', 'bkg', 'signal_local'])
-    args = parser.parse_args()
+    parser.add_argument('--action', type=str, choices=['signal', 'bkg', 'signal_local'])
+    args = parser.parse_args
+
 
     if args.signal_local:
         process_signal(
             list(sorted(glob.iglob('raw_signal/*.root')))
             )
     elif args.signal:
+    if args.signal:
         process_signal(
             iter_rootfiles_umd(
                 seutils.ls_wildcard(
-                    'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/sig_mz250_rinv0p3_mDark20_Mar31/*.root'
-                    )
-                + ['gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/thomas.klijnsma/qcdtest3/sig_ECF_typeCDMN_Jan29/1.root']
-                ),
-            )
+                    #'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/sig_mz250_rinv0p3_mDark20_Mar31/*.root'
+		    #'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz250_mdark10_rinv0.3/*.root'
+		    '/home/snabili/Bsvj/YiMu_genSamples/finaltreemakersamples/M250.root'
+                    ),
+                #+ ['gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/thomas.klijnsma/qcdtest3/sig_ECF_typeCDMN_Jan29/1.root']
+                #),
+            ))
     elif args.bkg:
         process_bkg(
             iter_rootfiles_umd(seutils.ls_wildcard(
                 'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/bkg_May04_year2018/*/*.root'
                 )),
+            )'''
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('signal', type=str)
+    args = parser.parse_args()
+
+    if args.signal:
+      process_signal(
+            #list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/treemaker_mz350mDard10rinv0p3.root')))
+            list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/M250.root')))
             )
 
 if __name__ == '__main__':
