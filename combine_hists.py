@@ -157,7 +157,22 @@ def make_mt_histogram(name, mt, score=None, threshold=None, mt_binning=None, nor
     ROOT.SetOwnership(h, False)
     [ h.Fill(x) for x in mt ]
     if normalization is not None:
-        h.Scale(normalization*efficiency / h.Integral(0, h.GetNbinsX()+1))
+        integral = h.Integral(0, h.GetNbinsX()+1)
+        h.Scale(normalization*efficiency / integral if integral != 0. else 0.)
+    return h
+
+
+def make_summed_histogram(name, ds, norms, threshold=None, mt_binning=None):
+    from operator import add
+    from functools import reduce
+    h = reduce(add, (
+        make_mt_histogram(
+            str(uuid.uuid4()), d['mt'], d['score'],
+            threshold=threshold, normalization=norm, mt_binning=mt_binning
+            )
+        for d, norm in zip(ds, norms)
+        ))
+    h.SetNameTitle(name, name)
     return h
 
 
@@ -265,3 +280,27 @@ def test_optimal_count():
         [18307, 37347, 20243, 3518, 1004]
         )
     print('Succeeded')
+
+
+def test_sum_hists():
+    import ROOT
+    h1 = ROOT.TH1F('h1', 'h1', 10, array('f', np.linspace(200., 400., 11)))
+    h2 = ROOT.TH1F('h2', 'h2', 10, array('f', np.linspace(200., 400., 11)))
+    h1.Fill(250.)
+    h1.Fill(300.)
+    h2.Fill(250.)
+    h2.Fill(350.)
+    def printh(h):
+        contents = []
+        for i in range(h.GetNbinsX()):
+            contents.append(h.GetBinContent(i+1))
+        print(np.array(contents))
+    printh(h1)
+    printh(h2)
+    printh(h1+h2)
+    from operator import add
+    from functools import reduce
+    h_sum = reduce(add, [h1, h2])
+    printh(h_sum)
+    printh(h1)
+    printh(h2)
