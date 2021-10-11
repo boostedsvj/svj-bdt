@@ -131,7 +131,7 @@ def preselection(event, cut_flow=None):
 
     if len(event[b'JetsAK15.fCoordinates.fPt']) < 2:
         return False
-    cut_flow.plus_one('>1jets')
+    cut_flow.plus_one('>=2jets')
 
     if abs(event[b'JetsAK15.fCoordinates.fEta'][1]) > 2.4:
         return False

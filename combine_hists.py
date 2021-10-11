@@ -20,11 +20,11 @@ def get_scores(rootfile, model):
     '''
     X = []
     X_histogram = []
-    cut_flow = CutFlowColumn()
+    cutflow = CutFlowColumn()
     try:
         for event in uptools.iter_events(rootfile):
-            cut_flow.plus_one('total')
-            if not preselection(event, cut_flow): continue
+            cutflow.plus_one('total')
+            if not preselection(event, cutflow): continue
             subl = get_subl(event)
             mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
             X.append([
@@ -34,11 +34,11 @@ def get_scores(rootfile, model):
                 ])
             X_histogram.append([mt, rt, subl.pt, subl.energy])
     except IndexError:
-        print(f'Problem with {rootfile}; saving {cut_flow["preselection"]} good entries')
+        print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
     except:
         print(f'Error processing {rootfile}; Skipping')
-    if cut_flow['preselection'] == 0:
-        print(f'0/{cut_flow["total"]} events passed the preselection for {rootfile}')
+    if cutflow['preselection'] == 0:
+        print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
         return
     # Get the bdt scores
     score = model.predict_proba(np.array(X))[:,1]
@@ -47,8 +47,7 @@ def get_scores(rootfile, model):
     return dict(
         score=score,
         **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy'])},
-        n_total=n_total,
-        n_presel=n_presel
+        **cutflow.counts
         )
 
 
@@ -239,6 +238,14 @@ def dump_score_npzs_mp(model, rootfiles, outfile, n_threads=12, keep_tmp_files=F
 # ________________________________________________________
 # Some tests
 
+def test_get_scores():
+    model = xgb.XGBClassifier()
+    model.load_model('/Users/klijnsma/work/svj/bdt/svjbdt_Aug02.json')
+    rootfile = 'TREEMAKER_genjetpt375_Jul21_mz250_mdark10_rinv0.337.root'
+    d = get_scores(rootfile, model)
+    import pprint
+    pprint.pprint(d, sort_dicts=False)
+
 def test_dump_score_npz_worker():
     model = xgb.XGBClassifier()
     model.load_model('/Users/klijnsma/work/svj/bdt/svjbdt_Aug02.json')
@@ -302,3 +309,6 @@ def test_sum_hists():
     printh(h_sum)
     printh(h1)
     printh(h2)
+
+if __name__ == '__main__':
+    test_get_scores()
