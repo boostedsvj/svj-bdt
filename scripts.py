@@ -1,4 +1,4 @@
-import glob
+import glob, math
 import numpy as np
 import xgboost as xgb
 import seutils
@@ -187,8 +187,15 @@ def make_histograms_Oct05(rootfile):
     quantiles = .1*np.arange(1,10)
     thresholds = np.quantile(bkg_weighted['score'], quantiles)
 
+    # binning = MT_BINNING
+    left = 210.
+    right = 500.
+    bin_width = 8.
+    binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
+
     # Now make the histograms for various thresholds
     def make_and_write(*args, **kwargs):
+        kwargs['mt_binning'] = binning
         h = make_summed_histogram(*args, **kwargs)
         print(f'Writing {h.GetName()} --> {rootfile}')
         h.Write()
@@ -197,24 +204,9 @@ def make_histograms_Oct05(rootfile):
     try:
         f = ROOT.TFile.Open(rootfile, 'RECREATE')
 
-        # For Sara
-        tdir = f.mkdir('bsvj')
-        tdir.cd()
-        sara_threshold = thresholds[quantiles == .8]
-        # Write Bkg and data_obs
-        h = make_and_write('Bkg', bkg, bkg_n137, threshold=sara_threshold)
-        h.SetNameTitle('data_obs', 'data_obs')
-        h.Write()
-        # Write the signal histograms
-        for name, d, norm in zip(mz_labels, signal, signal_n137):
-            name = f'SVJ_mZprime{name.replace("mz","")}_mDark10_rinv03_alphapeak'
-            h = make_mt_histogram(name, d['mt'], d['score'], sara_threshold, normalization=norm)
-            print(f'Writing {h.GetName()} --> {rootfile}')
-            h.Write()
-
         # Dump many bkg rejections
         for threshold, bkg_rejection in zip([None] + list(thresholds), .1*np.arange(10)):
-            print(f'Writing histograms @ {bkg_rejection=}')
+            print(f'Writing histograms @ {bkg_rejection=:.2f} (bdt_score>{threshold})')
             tdir = f.mkdir(f'bkg_rejection_{bkg_rejection:.2f}'.replace('.','p'))
             tdir.cd()
             make_and_write('qcd', qcd, qcd_n137, threshold=threshold)
@@ -223,7 +215,21 @@ def make_histograms_Oct05(rootfile):
             make_and_write('zjets', zjets, zjets_n137, threshold=threshold)
             make_and_write('bkg', bkg, bkg_n137, threshold=threshold)
             for name, d, norm in zip(mz_labels, signal, signal_n137):
-                h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm)
+                h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
+                print(f'Writing {h.GetName()} --> {rootfile}')
+                h.Write()
+
+            # For Sara: Different naming scheme
+            tdir = f.mkdir('bsvj_{}'.format(int(100.*bkg_rejection)))
+            tdir.cd()
+            # Write Bkg and data_obs
+            h = make_and_write('Bkg', bkg, bkg_n137, threshold=threshold)
+            h.SetNameTitle('data_obs', 'data_obs')
+            h.Write()
+            # Write the signal histograms
+            for name, d, norm in zip(mz_labels, signal, signal_n137):
+                name = f'SVJ_mZprime{name.replace("mz","")}_mDark10_rinv03_alphapeak'
+                h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}')
                 h.Write()
 

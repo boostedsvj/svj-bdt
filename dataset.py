@@ -115,15 +115,32 @@ def calculate_mt(jets, met, metphi):
         )
     return mt
 
-def preselection(event):
-    if len(event[b'JetsAK8.fCoordinates.fPt']) == 0:
+class CutFlowColumn:
+    def __init__(self) -> None:
+        self.counts = {}
+
+    def plus_one(self, name):
+        self.counts.setdefault(name, 0)
+        self.counts[name] += 1
+
+    def __getitem__(self, name):
+        return self.counts.get(name, 0)
+
+def preselection(event, cut_flow=None):
+    if cut_flow is None: cut_flow = CutFlowColumn()
+
+    if len(event[b'JetsAK15.fCoordinates.fPt']) < 2:
         return False
-    elif event[b'JetsAK8.fCoordinates.fPt'][0] < 550.:
+    cut_flow.plus_one('>1jets')
+
+    if abs(event[b'JetsAK15.fCoordinates.fEta'][1]) > 2.4:
         return False
-    elif len(event[b'JetsAK15.fCoordinates.fPt']) < 2:
+    cut_flow.plus_one('eta<2.4')
+
+    if len(event[b'JetsAK8.fCoordinates.fPt']) == 0 or event[b'JetsAK8.fCoordinates.fPt'][0] < 550.:
         return False
-    elif np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.08:
-        return False
+    cut_flow.plus_one('trigger')
+
     for ecf in [
         b'JetsAK15_ecfC2b1',
         # b'JetsAK15_ecfC2b2',
@@ -145,6 +162,51 @@ def preselection(event):
                 return False
         except IndexError:
             return False
+    cut_flow.plus_one('ecf>0')
+
+    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.08:
+        return False
+    cut_flow.plus_one('rtx>1.08')
+
+    if event[b'Muons'] > 0 or event[b'Electrons'] > 0:
+        return False
+    cut_flow.plus_one('nleptons==0')
+
+    for ecf in [
+        b'JetsAK15_ecfC2b1',
+        # b'JetsAK15_ecfC2b2',
+        # b'JetsAK15_ecfC3b1',
+        # b'JetsAK15_ecfC3b2',
+        b'JetsAK15_ecfD2b1',
+        # b'JetsAK15_ecfD2b2',
+        b'JetsAK15_ecfM2b1',
+        # b'JetsAK15_ecfM2b2',
+        # b'JetsAK15_ecfM3b1',
+        # b'JetsAK15_ecfM3b2',
+        # b'JetsAK15_ecfN2b1',
+        b'JetsAK15_ecfN2b2',
+        # b'JetsAK15_ecfN3b1',
+        # b'JetsAK15_ecfN3b2'
+        ]:
+        try:
+            if event[ecf][1] < 0.:
+                return False
+        except IndexError:
+            return False
+    cut_flow.plus_one('ecf>0')
+
+    if any(event[b] == 0 for b in [
+        b'HBHENoiseFilter',
+        b'HBHEIsoNoiseFilter',
+        b'eeBadScFilter',
+        b'ecalBadCalibReducedFilter',
+        b'BadPFMuonFilter',
+        b'BadChargedCandidateFilter',
+        b'globalSuperTightHalo2016Filter',
+        ]):
+        return False
+    cut_flow.plus_one('metfilter')
+    cut_flow.plus_one('preselection')
     return True
 
 

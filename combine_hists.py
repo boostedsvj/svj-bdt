@@ -7,7 +7,7 @@ import seutils
 import uptools
 uptools.logger.setLevel(logging.WARNING)
 
-from dataset import preselection, get_subl, calculate_mt_rt
+from dataset import preselection, get_subl, calculate_mt_rt, CutFlowColumn
 
 
 def get_scores(rootfile, model):
@@ -20,13 +20,11 @@ def get_scores(rootfile, model):
     '''
     X = []
     X_histogram = []
-    n_total = 0
-    n_presel = 0
+    cut_flow = CutFlowColumn()
     try:
         for event in uptools.iter_events(rootfile):
-            n_total += 1
-            if not preselection(event): continue
-            n_presel += 1
+            cut_flow.plus_one('total')
+            if not preselection(event, cut_flow): continue
             subl = get_subl(event)
             mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
             X.append([
@@ -36,11 +34,11 @@ def get_scores(rootfile, model):
                 ])
             X_histogram.append([mt, rt, subl.pt, subl.energy])
     except IndexError:
-        print(f'Problem with {rootfile}; saving {n_presel} good entries')
+        print(f'Problem with {rootfile}; saving {cut_flow["preselection"]} good entries')
     except:
         print(f'Error processing {rootfile}; Skipping')
-    if n_presel == 0:
-        print(f'0/{n_total} events passed the preselection for {rootfile}')
+    if cut_flow['preselection'] == 0:
+        print(f'0/{cut_flow["total"]} events passed the preselection for {rootfile}')
         return
     # Get the bdt scores
     score = model.predict_proba(np.array(X))[:,1]
