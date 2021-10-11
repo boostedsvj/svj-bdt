@@ -1,9 +1,9 @@
 """# submit
 htcondor('request_memory', '4096MB')
-import seutils, os.path as osp
+import seutils, os.path as osp, itertools
 
 print('Compiling list of rootfiles...')
-bkg_rootfiles = [ seutils.ls_wildcard(d + '/*/*.root) for d in [
+bkg_rootfiles = [ seutils.ls_wildcard(d + '/*/*.root') for d in [
     # ttjets
     'root://cmseos.fnal.gov//store/user/lpcdarkqcd/boosted/BKG/bkg_ttjetsAug04_year2018',
     'root://cmseos.fnal.gov//store/user/lpcdarkqcd/boosted/BKG/bkg_ttjetsAug18_year2018',
@@ -20,14 +20,14 @@ bkg_rootfiles = [ seutils.ls_wildcard(d + '/*/*.root) for d in [
 bkg_rootfiles = list(itertools.chain.from_iterable(bkg_rootfiles))
 
 # mz 250, 300, 350
-sig_rootfiles = [ seutils.ls_wildcard(d + '/*.root) for d in [
+sig_rootfiles = [ seutils.ls_wildcard(d + '/*.root') for d in [
     'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz250_mdark10_rinv0.3',
     'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz300_mdark10_rinv0.3',
     'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz350_mdark10_rinv0.3',
     ]]
 sig_rootfiles = list(itertools.chain.from_iterable(sig_rootfiles))
 
-bdt_json = 'svjbdt_Sep21_fromsara_3masspoints_qcdttjets.json'
+bdt_json = 'svjbdt_Sep22_fromsara_3masspoints_qcdttjets.json'
 def submit_chunk(chunk):
     submit(
         rootfiles=chunk,
@@ -36,10 +36,10 @@ def submit_chunk(chunk):
         transfer_files=['combine_hists.py', 'dataset.py', bdt_json],
         )
 
-for chunk in qondor.utils.chunkify(bkg_rootfiles, chunksize=5):
+for chunk in qondor.utils.chunkify(bkg_rootfiles, chunksize=10):
     submit_chunk(chunk)
 
-for chunk in qondor.utils.chunkify(sig_rootfiles, chunksize=25):
+for chunk in qondor.utils.chunkify(sig_rootfiles, chunksize=30):
     submit_chunk(chunk)
 """# endsubmit
 
@@ -55,10 +55,9 @@ for rootfile in qondor.scope.rootfiles:
     try:
         seutils.cp(rootfile, 'in.root')
         dump_score_npz('in.root', model, 'out.npz')
-        outfile = 'root://cmseos.fnal.gov//store/user/lpcdarkqcd/boosted/postbdt_npzs/Oct05/{}/{}/{}'.format(
-            osp.basename(osp.dirname(osp.dirname(rootfile))),
-            osp.basename(osp.dirname(rootfile)),
-            osp.basename(rootfile).replace('.root', '.npz')
+        outfile = (
+            'root://cmseos.fnal.gov//store/user/lpcdarkqcd/boosted/postbdt_npzs/Oct05/'
+            + '/'.join(rootfile.split('/')[-3:]).replace('.root', '.npz')
             )
         seutils.cp('out.npz', outfile)
 

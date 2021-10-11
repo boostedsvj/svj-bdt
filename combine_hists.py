@@ -45,10 +45,7 @@ def get_scores(rootfile, model):
     # Get the bdt scores
     score = model.predict_proba(np.array(X))[:,1]
     # Prepare and dump to file
-    print(f'Dumping {len(X)} events from {rootfile} to {outfile}')
     X_histogram = np.array(X_histogram)
-    outdir = osp.dirname(outfile)
-    if outdir and not osp.isdir(outdir): os.makedirs(outdir)
     return dict(
         score=score,
         **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy'])},
@@ -61,7 +58,11 @@ def dump_score_npz(rootfile, model, outfile):
     '''    
     Calculates score and dumps events that pass the preselection to a .npz file.
     '''
-    np.savez(outfile, **get_hist(rootfile, model))
+    d = get_scores(rootfile, model)
+    print(f'Dumping {len(d["score"])} events from {rootfile} to {outfile}')
+    outdir = osp.dirname(outfile)
+    if outdir and not osp.isdir(outdir): os.makedirs(outdir)
+    np.savez(outfile, **d)
 
 
 def combine_ds(ds):
