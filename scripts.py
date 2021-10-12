@@ -41,11 +41,17 @@ qcd_labels = [
     'Autumn18.QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8',
     ]
 ttjets_labels = [
-    'Autumn18.TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8',
-    'Autumn18.TTJets_HT-600to800_TuneCP5_13TeV-madgraphMLM-pythia8',
-    'Autumn18.TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8',
-    'Autumn18.TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8',
-    'Autumn18.TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8',
+    'Autumn18.TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8'
+    'Autumn18.TTJets_HT-600to800_TuneCP5_13TeV-madgraphMLM-pythia8'
+    'Autumn18.TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8'
+    'Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8'
+    'Autumn18.TTJets_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8'
+    'Autumn18.TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8'
+    'Autumn18.TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8'
+    'Autumn18.TTJets_TuneCP5_13TeV-madgraphMLM-pythia8'
+    # 'Autumn18.TTJets_DiLept_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8'
+    # 'Autumn18.TTJets_SingleLeptFromT_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8'
+    # 'Autumn18.TTJets_SingleLeptFromTbar_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8'
     ]
 wjets_labels = [
     'Autumn18.WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8',
@@ -64,20 +70,27 @@ zjets_labels = [
     'Autumn18.ZJetsToNuNu_HT-1200To2500_13TeV-madgraph',
     'Autumn18.ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph',
     ]
-qcd_xs = np.array([6826.0, 552.6, 156.6, 26.3, 7.5])
-ttjets_xs = np.array([831.8*0.105, 1.808, 0.7490, 831.8*0.219, 831.8*0.219])
-wjets_xs = np.array([1393.0, 409.9, 57.80, 12.94, 5.451, 1.085, 0.008060])
-zjets_xs = np.array([304.0, 91.68, 13.11, 3.245, 1.497, 0.3425, 0.005263])
-# mz = 250, 300, 350
-mz_labels = ['mz250', 'mz300', 'mz350']
-mz_xs = 0.00191*0.233 * np.array([34820, 23430, 23430-(34820-23430)])
+
+import crosssections
+qcd_xs = crosssections.labels_to_xs(qcd_labels)
+ttjets_xs = crosssections.labels_to_xs(ttjets_labels)
+wjets_xs = crosssections.labels_to_xs(wjets_labels)
+zjets_xs = crosssections.labels_to_xs(zjets_labels)
+
+old_qcd_xs = np.array([6826.0, 552.6, 156.6, 26.3, 7.5])
+old_ttjets_xs = np.array([831.8*0.105, 1.808, 0.7490, 831.8*0.219, 831.8*0.219])
+old_wjets_xs = np.array([1393.0, 409.9, 57.80, 12.94, 5.451, 1.085, 0.008060])
+old_zjets_xs = np.array([304.0, 91.68, 13.11, 3.245, 1.497, 0.3425, 0.005263])
+
 
 bkg_xs = np.concatenate((qcd_xs, ttjets_xs, wjets_xs, zjets_xs))
 bkg_labels = flatten(qcd_labels, ttjets_labels, wjets_labels, zjets_labels)
-all_xs = np.concatenate((qcd_xs, ttjets_xs, wjets_xs, zjets_xs, mz_xs))
-all_labels = flatten(qcd_labels, ttjets_labels, wjets_labels, zjets_labels, mz_labels)
 
-def format_table(table, col_sep=' ', row_sep='\n'):
+mz_labels = ['mz250', 'mz300', 'mz350']
+# all_xs = np.concatenate((qcd_xs, ttjets_xs, wjets_xs, zjets_xs, mz_xs))
+# all_labels = flatten(qcd_labels, ttjets_labels, wjets_labels, zjets_labels, mz_labels)
+
+def format_table(table, col_sep=' ', row_sep='\n', transpose=False):
     def format(s):
         try:
             number_f = float(s)
@@ -89,6 +102,7 @@ def format_table(table, col_sep=' ', row_sep='\n'):
         except ValueError:
             return str(s)
     table = [ [format(c) for c in row ] for row in table ]
+    if transpose: table = list(zip(*table))
     col_widths = [ max(map(len, column)) for column in zip(*table) ]
     return row_sep.join(
         col_sep.join(f'{col:{w}s}' for col, w in zip(row, col_widths)) for row in table
@@ -97,6 +111,75 @@ def format_table(table, col_sep=' ', row_sep='\n'):
 def print_table(*args, **kwargs):
     print(format_table(*args, **kwargs))
 
+
+
+@cli.command()
+def dev_dicts():
+    get_dicts_from_postbdt_directory('postbdt_npzs_Oct05')
+
+
+def get_dicts_from_postbdt_directory(directory):
+    print(f'Building combined dicts from {directory}')
+    labels = list(set(osp.basename(s) for s in glob.iglob(osp.join(directory, '*/*'))))
+    labels.sort()
+    # FIXME: Aren't we double counting with these included?
+    # We can include them but we can't just add them on top
+    # of the other directories, we have to correct something?
+    labels.remove('Autumn18.TTJets_SingleLeptFromT_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
+    labels.remove('Autumn18.TTJets_SingleLeptFromTbar_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
+    labels.remove('Autumn18.TTJets_DiLept_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
+    labels.remove('Autumn18.TTJets_TuneCP5_13TeV-madgraphMLM-pythia8')
+    # labels = labels[:3] # FIXME
+    ds = [combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))) for l in labels]
+    xs = crosssections.labels_to_xs(labels)
+    return labels, xs, ds
+
+@cli.command()
+def print_statistics_Oct11():
+    labels, xss, dicts = get_dicts_from_postbdt_directory('postbdt_npzs_Oct11_5masspoints')
+    def clean_label(label):
+        for p in [
+            'Autumn18.',
+            '_TuneCP5',
+            '_13TeV',
+            '_pythia8',
+            '-pythia8',
+            '-madgraphMLM',
+            '-madgraph',
+            'genjetpt375_',
+            '_mdark10_rinv0.3',
+            'ToLNu',
+            'ToNuNu',
+            ]:
+            label = label.replace(p, '')
+        return label
+    cutflow_keys = [
+        'total',
+        '>=2jets',
+        'eta<2.4',
+        'trigger',
+        'ecf>0',
+        'rtx>1.08',
+        'nleptons==0',
+        'metfilter',
+        'preselection',
+        ]
+    header_column = ['label'] + cutflow_keys
+    def print_cutflow(labels, xss, dicts):
+        table = [header_column]
+        for label, xs, d in zip(labels, xss, dicts):
+            column = [clean_label(label)]
+            for cutflow_key in cutflow_keys:
+                column.append(f"{100*d[cutflow_key] / d['total'] / (2. if cutflow_key=='ecf>0' else 1.):.2f}%")
+            table.append(column)
+        print_table(table, transpose=True)
+
+    from operator import itemgetter
+
+    for pat in [ 'QCD', 'TTJets', 'WJets', 'ZJets', 'mz' ]:
+        get = itemgetter(*(i for i, label in enumerate(labels) if pat in label))
+        print('')
+        print_cutflow(get(labels), get(xss), get(dicts))
 
 def get_dicts_Oct05(prefix='postbdt_npzs_Oct05'):
     qcd = [
@@ -140,9 +223,9 @@ def get_dicts_Oct05(prefix='postbdt_npzs_Oct05'):
 
 @cli.command()
 def print_statistics_Oct05():
-    dicts = flatten(*get_dicts_Oct05())
+    labels, xss, dicts = get_dicts_from_postbdt_directory('postbdt_npzs_Oct05')
     table = [['label', 'xs', 'eff_xs', 'n_total', 'n_presel', 'frac', 'N_137']]
-    for d, xs, label in zip(dicts, all_xs, all_labels):
+    for label, xs, d in zip(labels, xss, dicts):
         n_total = d["n_total"]
         n_presel = d["n_presel"]
         frac = n_presel / n_total

@@ -172,29 +172,6 @@ def preselection(event, cut_flow=None):
         return False
     cut_flow.plus_one('nleptons==0')
 
-    for ecf in [
-        b'JetsAK15_ecfC2b1',
-        # b'JetsAK15_ecfC2b2',
-        # b'JetsAK15_ecfC3b1',
-        # b'JetsAK15_ecfC3b2',
-        b'JetsAK15_ecfD2b1',
-        # b'JetsAK15_ecfD2b2',
-        b'JetsAK15_ecfM2b1',
-        # b'JetsAK15_ecfM2b2',
-        # b'JetsAK15_ecfM3b1',
-        # b'JetsAK15_ecfM3b2',
-        # b'JetsAK15_ecfN2b1',
-        b'JetsAK15_ecfN2b2',
-        # b'JetsAK15_ecfN3b1',
-        # b'JetsAK15_ecfN3b2'
-        ]:
-        try:
-            if event[ecf][1] < 0.:
-                return False
-        except IndexError:
-            return False
-    cut_flow.plus_one('ecf>0')
-
     if any(event[b] == 0 for b in [
         b'HBHENoiseFilter',
         b'HBHEIsoNoiseFilter',
