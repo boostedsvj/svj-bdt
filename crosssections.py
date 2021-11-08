@@ -39,27 +39,8 @@ zjets_xs = {
     'ZJetsToNuNu_HT-2500ToInf'  : 0.005263,
     }
 
-raw_mz_xs = {
-    'mz1000' : 2.273e+01,
-    'mz150'  : 1.374e+04,
-    'mz250'  : 2.925e+03,
-    'mz300'  : 1.657e+03,
-    'mz450'  : 3.794e+02,
-    'mz500'  : 2.655e+02,
-    'mz600'  : 1.425e+02,
-    'mz650'  : 1.082e+02,
-    'mz700'  : 8.365e+01,
-    'mz800'  : 5.151e+01,
-    'mz900'  : 3.379e+01,
-    'mz50'   : 2.754e+05,
-    }
-
-# FIXME: Inter- and extrapolations
-raw_mz_xs['mz350'] = raw_mz_xs['mz300'] - (raw_mz_xs['mz250']-raw_mz_xs['mz300'])
-raw_mz_xs['mz400'] = raw_mz_xs['mz450'] + (raw_mz_xs['mz300']-raw_mz_xs['mz450'])/3.
-raw_mz_xs['mz230'] = raw_mz_xs['mz250'] + (raw_mz_xs['mz150']-raw_mz_xs['mz250'])/5.
-raw_mz_xs['mz270'] = raw_mz_xs['mz250'] - (raw_mz_xs['mz150']-raw_mz_xs['mz250'])/5.
-raw_mz_xs['mz330'] = raw_mz_xs['mz300'] - (raw_mz_xs['mz300']-raw_mz_xs['mz450'])/5.
+d_mz_xs = np.load('crosssections_Oct12.npz')
+raw_mz_xs = {f'mz{mz:.0f}' : xs for mz, xs in zip(d_mz_xs['mz'], d_mz_xs['xs'])}
 
 # FIXME: Apply the right genjetpt375 efficiencies per mass point
 # Now applying the mz250 efficiencies on all! This is a very bad approximation!

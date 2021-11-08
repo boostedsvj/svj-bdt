@@ -1,17 +1,18 @@
-import glob, math
+import glob, math, re
+import ROOT
 import numpy as np
 import xgboost as xgb
 import seutils
 from combine_hists import *
 import itertools
 from array import array
+from contextlib import contextmanager
 
 try:
     import click
 except ImportError:
     print('First install click:\npip install click')
     raise
-
 
 def get_model(modeljson):
     model = xgb.XGBClassifier()
@@ -23,6 +24,13 @@ def get_model(modeljson):
 def cli():
     pass
 
+@contextmanager
+def open_root(*args, **kwargs):
+    try:
+        f = ROOT.TFile.Open(*args, **kwargs)
+        yield f
+    finally:
+        f.Close()
 
 def flatten(*args):
     return list(itertools.chain.from_iterable(args))
@@ -118,7 +126,7 @@ def dev_dicts():
     get_dicts_from_postbdt_directory('postbdt_npzs_Oct05')
 
 
-def get_dicts_from_postbdt_directory(directory):
+def get_dicts_from_postbdt_directory(directory, split=False):
     print(f'Building combined dicts from {directory}')
     labels = list(set(osp.basename(s) for s in glob.iglob(osp.join(directory, '*/*'))))
     labels.sort()
@@ -129,27 +137,26 @@ def get_dicts_from_postbdt_directory(directory):
     labels.remove('Autumn18.TTJets_SingleLeptFromTbar_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
     labels.remove('Autumn18.TTJets_DiLept_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
     labels.remove('Autumn18.TTJets_TuneCP5_13TeV-madgraphMLM-pythia8')
-    # labels = labels[:3] # FIXME
     ds = [combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))) for l in labels]
     xs = crosssections.labels_to_xs(labels)
+    if split:
+        # Return splitted by QCD, TTJets, WJets, ZJets, mz
+        from operator import itemgetter
+        getters = [
+            itemgetter(*(i for i, label in enumerate(labels) if pat in label))
+            for pat in [ 'QCD', 'TTJets', 'WJets', 'ZJets', 'mz' ]
+            ]        
+        return [(getter(labels), getter(xs), getter(ds)) for getter in getters]
     return labels, xs, ds
+
 
 @cli.command()
 def print_statistics_Oct11():
-    labels, xss, dicts = get_dicts_from_postbdt_directory('postbdt_npzs_Oct11_5masspoints')
     def clean_label(label):
         for p in [
-            'Autumn18.',
-            '_TuneCP5',
-            '_13TeV',
-            '_pythia8',
-            '-pythia8',
-            '-madgraphMLM',
-            '-madgraph',
-            'genjetpt375_',
-            '_mdark10_rinv0.3',
-            'ToLNu',
-            'ToNuNu',
+            'Autumn18.', '_TuneCP5', '_13TeV', '_pythia8', '-pythia8',
+            '-madgraphMLM', '-madgraph', 'genjetpt375_', '_mdark10_rinv0.3',
+            'ToLNu', 'ToNuNu',
             ]:
             label = label.replace(p, '')
         return label
@@ -164,62 +171,93 @@ def print_statistics_Oct11():
         'metfilter',
         'preselection',
         ]
-    header_column = ['label'] + cutflow_keys
+    header_column = ['label', 'xs'] + cutflow_keys
     def print_cutflow(labels, xss, dicts):
         table = [header_column]
         for label, xs, d in zip(labels, xss, dicts):
-            column = [clean_label(label)]
+            column = [clean_label(label), f'{xs:.1f}']
             for cutflow_key in cutflow_keys:
-                column.append(f"{100*d[cutflow_key] / d['total'] / (2. if cutflow_key=='ecf>0' else 1.):.2f}%")
+                column.append(f"{100*d[cutflow_key] / d['total']:.2f}%")
             table.append(column)
         print_table(table, transpose=True)
 
-    from operator import itemgetter
+    # for labels, xss, dicts in get_dicts_from_postbdt_directory('postbdt_npzs_Oct11_5masspoints', split=True):
+    for labels, xss, dicts in get_dicts_from_postbdt_directory('postbdt_npzs_Oct12', split=True):
+        print_cutflow(labels, xss, dicts)
 
-    for pat in [ 'QCD', 'TTJets', 'WJets', 'ZJets', 'mz' ]:
-        get = itemgetter(*(i for i, label in enumerate(labels) if pat in label))
-        print('')
-        print_cutflow(get(labels), get(xss), get(dicts))
 
-def get_dicts_Oct05(prefix='postbdt_npzs_Oct05'):
-    qcd = [
-        'bkg_May04_year2018/Autumn18.QCD_Pt_300to470_TuneCP5_13TeV_pythia8/*.npz',
-        'bkg_May04_year2018/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8/*.npz',
-        'bkg_May04_year2018/Autumn18.QCD_Pt_600to800_TuneCP5_13TeV_pythia8/*.npz',
-        'bkg_May04_year2018/Autumn18.QCD_Pt_800to1000_TuneCP5_13TeV_pythia8_ext1/*.npz',
-        'bkg_May04_year2018/Autumn18.QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8/*.npz',
-        ]
-    ttjets = [
-        '*ttjets*/Autumn18.TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*ttjets*/Autumn18.TTJets_HT-600to800_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*ttjets*/Autumn18.TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*ttjets*/Autumn18.TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*ttjets*/Autumn18.TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        ]
-    wjets = [
-        '*wjets*/Autumn18.WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*wjets*/Autumn18.WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*wjets*/Autumn18.WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*wjets*/Autumn18.WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*wjets*/Autumn18.WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*wjets*/Autumn18.WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        '*wjets*/Autumn18.WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/*.npz',
-        ]
-    zjets = [
-        '*zjets*/Autumn18.ZJetsToNuNu_HT-200To400_13TeV-madgraph/*.npz',
-        '*zjets*/Autumn18.ZJetsToNuNu_HT-400To600_13TeV-madgraph/*.npz',
-        '*zjets*/Autumn18.ZJetsToNuNu_HT-600To800_13TeV-madgraph/*.npz',
-        '*zjets*/Autumn18.ZJetsToNuNu_HT-800To1200_13TeV-madgraph/*.npz',
-        '*zjets*/Autumn18.ZJetsToNuNu_HT-1200To2500_13TeV-madgraph/*.npz',
-        '*zjets*/Autumn18.ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph/*.npz',
-        ]
-    signal = [
-        'TreeMaker/genjetpt375_mz250_mdark10_rinv0.3/*.npz',
-        'TreeMaker/genjetpt375_mz300_mdark10_rinv0.3/*.npz',
-        'TreeMaker/genjetpt375_mz350_mdark10_rinv0.3/*.npz',
-        ]
-    get_dicts = lambda patterns: [ combine_npzs(glob.iglob(prefix+'/'+p)) for p in patterns ]
-    return [ get_dicts(pat) for pat in [qcd, ttjets, wjets, zjets, signal] ]
+@cli.command()
+@click.option('-o', '--rootfile', default='test.root')
+@click.option('-d', '--postbdt-dir', default='postbdt_npzs_Oct12')
+def make_histograms(rootfile, postbdt_dir):
+    *bkgs, sig = get_dicts_from_postbdt_directory(postbdt_dir, split=True)
+    def calc_n137(xss, ds):
+        return np.array([d['preselection']/d['total'] * xs * 137.2*1e3 for d, xs in zip(ds, xss)])
+    bkgs_n137 = [ calc_n137(bkg[1], bkg[2]) for bkg in bkgs ]
+    sig_n137 = calc_n137(sig[1], sig[2])
+
+    combined_bkg = flatten(*[bkg[2] for bkg in bkgs])
+    combined_bkg_n137 = flatten(*bkgs_n137)
+
+    # Make combined bkg dict, only for calculating the BDT thresholds at various
+    # bkg rejection rates
+    bkg_weighted = combine_ds_with_weights(combined_bkg, combined_bkg_n137)
+    quantiles = .1*np.arange(1,10)
+    thresholds = np.quantile(bkg_weighted['score'], quantiles)
+
+    # binning = MT_BINNING
+    left = 210.
+    right = 500.
+    bin_width = 8.
+    binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
+
+    # Now make the histograms for various thresholds
+    def make_and_write(*args, **kwargs):
+        kwargs['mt_binning'] = binning
+        h = make_summed_histogram(*args, **kwargs)
+        print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
+        h.Write()
+        return h
+
+    with open_root(rootfile, 'RECREATE') as f:
+        # Dump many bkg rejections
+        for threshold, bkg_rejection in zip([None] + list(thresholds), .1*np.arange(10)):
+            print(f'Writing histograms @ {bkg_rejection=:.2f} (bdt_score>{threshold})')
+            tdir = f.mkdir(f'bkg_rejection_{bkg_rejection:.2f}'.replace('.','p'))
+            tdir.cd()
+
+            signal_histograms = []
+            for label, _, d, norm in zip(*sig, sig_n137):
+                label = re.search(r'mz\d+', label).group()
+                h = make_mt_histogram(label, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
+                print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
+                h.Write()
+                signal_histograms.append(h)
+
+            for process, norms, (_, _, dicts) in zip(
+                ['qcd', 'ttjets', 'wjets', 'zjets'], bkgs_n137, bkgs
+                ):
+                make_and_write(process, dicts, norms, threshold=threshold)
+
+            h_bkg = make_and_write('bkg', combined_bkg, combined_bkg_n137, threshold=threshold)
+
+
+            tdir = f.mkdir('bsvj_{}'.format(int(100.*bkg_rejection)))
+            tdir.cd()
+
+            h_bkg.SetNameTitle('data_obs', 'data_obs')
+            print(f'Writing {h_bkg.GetName()} --> {rootfile}/{tdir.GetName()}')
+            h_bkg.Write()
+            h_bkg.SetNameTitle('Bkg', 'Bkg')
+            print(f'Writing {h_bkg.GetName()} --> {rootfile}/{tdir.GetName()}')
+            h_bkg.Write()
+
+            for h in signal_histograms:
+                name = f'SVJ_mZprime{h.GetName().replace("mz","")}_mDark10_rinv03_alphapeak'
+                h.SetNameTitle(name, name)
+                print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
+                h.Write()
+
 
 @cli.command()
 def print_statistics_Oct05():
@@ -243,18 +281,18 @@ def make_histograms_Oct05(rootfile):
     """
     try_import_ROOT()
     import ROOT
-    qcd, ttjets, wjets, zjets, signal = get_dicts_Oct05()
+    qcd, ttjets, wjets, zjets, signal = get_dicts_from_postbdt_directory('postbdt_npzs_Oct05', split=True)
 
     def calc_n_events_at_lumi(dicts, xss, lumi=137.2):
         return np.array([d["n_presel"]/d["n_total"] * xs * lumi*1e3 for d, xs in zip(dicts, xss)])
 
-    qcd_n137 = calc_n_events_at_lumi(qcd, qcd_xs)
-    ttjets_n137 = calc_n_events_at_lumi(ttjets, ttjets_xs)
-    wjets_n137 = calc_n_events_at_lumi(wjets, wjets_xs)
-    zjets_n137 = calc_n_events_at_lumi(zjets, zjets_xs)
-    signal_n137 = calc_n_events_at_lumi(signal, mz_xs)
+    qcd_n137 = calc_n_events_at_lumi(qcd[2], qcd[1])
+    ttjets_n137 = calc_n_events_at_lumi(ttjets[2], ttjets[1])
+    wjets_n137 = calc_n_events_at_lumi(wjets[2], wjets[1])
+    zjets_n137 = calc_n_events_at_lumi(zjets[2], zjets[1])
+    signal_n137 = calc_n_events_at_lumi(signal[2], signal[1])
     
-    bkg = flatten(qcd, ttjets, wjets, zjets)
+    bkg = flatten(qcd[2], ttjets[2], wjets[2], zjets[2])
     bkg_n137 = np.concatenate((qcd_n137, ttjets_n137, wjets_n137, zjets_n137))
 
     print('Expected # events qcd    =', qcd_n137.sum())
@@ -284,20 +322,18 @@ def make_histograms_Oct05(rootfile):
         h.Write()
         return h
 
-    try:
-        f = ROOT.TFile.Open(rootfile, 'RECREATE')
-
+    with open_root(rootfile, 'RECREATE') as f:
         # Dump many bkg rejections
         for threshold, bkg_rejection in zip([None] + list(thresholds), .1*np.arange(10)):
             print(f'Writing histograms @ {bkg_rejection=:.2f} (bdt_score>{threshold})')
             tdir = f.mkdir(f'bkg_rejection_{bkg_rejection:.2f}'.replace('.','p'))
             tdir.cd()
-            make_and_write('qcd', qcd, qcd_n137, threshold=threshold)
-            make_and_write('ttjets', ttjets, ttjets_n137, threshold=threshold)
-            make_and_write('wjets', wjets, wjets_n137, threshold=threshold)
-            make_and_write('zjets', zjets, zjets_n137, threshold=threshold)
+            make_and_write('qcd', qcd[2], qcd_n137, threshold=threshold)
+            make_and_write('ttjets', ttjets[2], ttjets_n137, threshold=threshold)
+            make_and_write('wjets', wjets[2], wjets_n137, threshold=threshold)
+            make_and_write('zjets', zjets[2], zjets_n137, threshold=threshold)
             make_and_write('bkg', bkg, bkg_n137, threshold=threshold)
-            for name, d, norm in zip(mz_labels, signal, signal_n137):
+            for name, d, norm in zip(signal[0], signal[2], signal_n137):
                 h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}')
                 h.Write()
@@ -310,14 +346,12 @@ def make_histograms_Oct05(rootfile):
             h.SetNameTitle('data_obs', 'data_obs')
             h.Write()
             # Write the signal histograms
-            for name, d, norm in zip(mz_labels, signal, signal_n137):
+            for name, d, norm in zip(signal[0], signal[2], signal_n137):
                 name = f'SVJ_mZprime{name.replace("mz","")}_mDark10_rinv03_alphapeak'
                 h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}')
                 h.Write()
 
-    finally:
-        f.Close()
 
 # ________________________________________________________
 # BELOW THIS LINE IS OUTDATED
