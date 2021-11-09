@@ -24,10 +24,18 @@ sig_rootfiles = [ seutils.ls_wildcard(d + '/*.root') for d in [
     'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz250_mdark10_rinv0.3',
     'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz300_mdark10_rinv0.3',
     'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz350_mdark10_rinv0.3',
+    # From Long:
+    'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Sept28/TreeMaker/genjetpt375_mz230_mdark10_rinv0.3',
+    'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Sept28/TreeMaker/genjetpt375_mz270_mdark10_rinv0.3',
+    'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Sept28/TreeMaker/genjetpt375_mz330_mdark10_rinv0.3',
+    'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Sept28/TreeMaker/genjetpt375_mz400_mdark10_rinv0.3',
+    'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Sept28/TreeMaker/genjetpt375_mz450_mdark10_rinv0.3',
     ]]
 sig_rootfiles = list(itertools.chain.from_iterable(sig_rootfiles))
 
-bdt_json = 'svjbdt_Sep22_fromsara_3masspoints_qcdttjets.json'
+# bdt_json = 'svjbdt_Sep22_fromsara_3masspoints_qcdttjets.json'
+bdt_json = 'svjbdt_Oct11_5masspoints_qcdttjets.json'
+
 def submit_chunk(chunk):
     submit(
         rootfiles=chunk,
@@ -36,10 +44,10 @@ def submit_chunk(chunk):
         transfer_files=['combine_hists.py', 'dataset.py', bdt_json],
         )
 
-for chunk in qondor.utils.chunkify(bkg_rootfiles, chunksize=10):
+for chunk in qondor.utils.chunkify(bkg_rootfiles, chunksize=20):
     submit_chunk(chunk)
 
-for chunk in qondor.utils.chunkify(sig_rootfiles, chunksize=30):
+for chunk in qondor.utils.chunkify(sig_rootfiles, chunksize=50):
     submit_chunk(chunk)
 """# endsubmit
 
@@ -56,7 +64,7 @@ for rootfile in qondor.scope.rootfiles:
         seutils.cp(rootfile, 'in.root')
         dump_score_npz('in.root', model, 'out.npz')
         outfile = (
-            'root://cmseos.fnal.gov//store/user/lpcdarkqcd/boosted/postbdt_npzs/Oct05/'
+            'root://cmseos.fnal.gov//store/user/lpcdarkqcd/boosted/postbdt_npzs/Oct12/'
             + '/'.join(rootfile.split('/')[-3:]).replace('.root', '.npz')
             )
         seutils.cp('out.npz', outfile)
