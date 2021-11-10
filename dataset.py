@@ -100,7 +100,7 @@ def calculate_mt_rt(jets, met, metphi):
     # m^2 + pT^2 = E^2 - pT^2 - pz^2 + pT^2 = E^2 - pz^2
     jet_e = np.sqrt(jets.energy**2 - jets.pz**2)
     mt = np.sqrt( (jet_e + met)**2 - (jet_x + met_x)**2 - (jet_y + met_y)**2 )
-    rt = met / mt
+    rt = np.sqrt(1+ met / jets.pt)
     return mt, rt
 
 def calculate_mt(jets, met, metphi):
@@ -135,12 +135,17 @@ def preselection(event, cut_flow=None):
 
     if abs(event[b'JetsAK15.fCoordinates.fEta'][1]) > 2.4:
         return False
+<<<<<<< HEAD
     cut_flow.plus_one('eta<2.4')
 
     if len(event[b'JetsAK8.fCoordinates.fPt']) == 0 or event[b'JetsAK8.fCoordinates.fPt'][0] < 550.:
         return False
     cut_flow.plus_one('trigger')
 
+=======
+    #elif np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.08:
+    #    return False
+>>>>>>> histo bdt changes
     for ecf in [
         b'JetsAK15_ecfC2b1',
         # b'JetsAK15_ecfC2b2',
@@ -218,6 +223,11 @@ def get_subl(event):
         )
     subl = jets[1]
     subl.metdphi = calc_dphi(subl.phi, event[b'METPhi'])
+    metdphi = calc_dphi(subl.phi, event[b'METPhi'])
+    subl.rt = np.sqrt(1+ event[b'MET']/subl.pt)
+    #subl.mt = calculate_mt(subl, event[b'MET'], subl.metphi)
+    subl.mt = calculate_mt(subl, event[b'MET'], metdphi)
+    #return subl, met
     return subl
 
 
@@ -260,12 +270,15 @@ def process_signal(rootfiles, outfile=None):
         n_final += 1
 
         X.append([
-            subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
+            subl.ptD, subl.axismajor, subl.multiplicity, subl.rt, subl.mt,
+            subl.girth, subl.axisminor, subl.metdphi,  
+            #subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
             subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
             subl.metdphi,
             subl.pt, subl.eta, subl.phi, subl.energy,
             zprime.pt, zprime.eta, zprime.phi, zprime.energy
             ])
+        #X.append([subl.rt])
 
     print(f'n_total: {n_total}; n_presel: {n_presel}; n_final: {n_final} ({100.*n_final/float(n_total):.2f}%)')
 

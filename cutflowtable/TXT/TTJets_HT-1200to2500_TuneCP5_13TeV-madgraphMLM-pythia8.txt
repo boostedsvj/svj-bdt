@@ -12,7 +12,6 @@
 /home/snabili/hadoop/BKG/bkg_ttjetsAug18_year2018/Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/112.root
 /home/snabili/hadoop/BKG/bkg_ttjetsAug18_year2018/Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/113.root
 /home/snabili/hadoop/BKG/bkg_ttjetsAug18_year2018/Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/114.root
-/home/snabili/hadoop/BKG/bkg_ttjetsAug18_year2018/Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/117.root
 /home/snabili/hadoop/BKG/bkg_ttjetsAug18_year2018/Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/118.root
 /home/snabili/hadoop/BKG/bkg_ttjetsAug18_year2018/Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/119.root
 /home/snabili/hadoop/BKG/bkg_ttjetsAug18_year2018/Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/122.root
