@@ -4,7 +4,6 @@
 /home/snabili/hadoop/BKG/bkg_Mar25_year2018/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8/12.root
 /home/snabili/hadoop/BKG/bkg_Mar25_year2018/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8/14.root
 /home/snabili/hadoop/BKG/bkg_Mar25_year2018/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8/15.root
-/home/snabili/hadoop/BKG/bkg_Mar25_year2018/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8/17.root
 /home/snabili/hadoop/BKG/bkg_Mar25_year2018/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8/23.root
 /home/snabili/hadoop/BKG/bkg_Mar25_year2018/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8/25.root
 /home/snabili/hadoop/BKG/bkg_Mar25_year2018/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8/28.root

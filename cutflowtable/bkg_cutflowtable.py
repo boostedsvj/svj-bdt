@@ -54,7 +54,6 @@ files = [ttjets_dilept_genMET, ttjets_dilept, ttjets_dilept_sinleptbar_genMET, t
 
 for f in files:
   print('file in: ', osp.basename(osp.dirname(f[1])))
-  #print(f[1])
   ntot = 0
   njets = 0
   neta = 0
@@ -68,7 +67,7 @@ for f in files:
   n = 0
   for i in f:
     n += 1
-    if n > 2: continue
+    if n > 10: continue
     tf_j = ROOT.TFile.Open(i)
     ttree_j = tf_j.Get("TreeMaker2/PreSelection")
     nbkg_j = ttree_j.GetEntries()
@@ -81,7 +80,7 @@ for f in files:
      neta += 1
      if ttree_j.JetsAK8[0].Pt()<550: continue
      ntrig += 1
-     if ttree_j.JetsAK15_ecfN2b1[1]<0: continue
+     if ttree_j.JetsAK15_ecfN2b2[1]<0 or ttree_j.JetsAK15_ecfM2b1[1]<0 or ttree_j.JetsAK15_ecfD2b1[1]<0 or ttree_j.JetsAK15_ecfC2b1[1]<0: continue
      necf += 1
      if sqrt(1+ttree_j.MET/ttree_j.JetsAK15[0].Pt()) < 1.08: continue
      nrtx += 1
