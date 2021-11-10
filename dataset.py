@@ -131,7 +131,7 @@ def preselection(event, cut_flow=None):
 
     if len(event[b'JetsAK15.fCoordinates.fPt']) < 2:
         return False
-    cut_flow.plus_one('>=2jets')
+    cut_flow.plus_one('>=2fjets')
 
     if abs(event[b'JetsAK15.fCoordinates.fEta'][1]) > 2.4:
         return False
@@ -335,29 +335,10 @@ def iter_rootfiles_umd(rootfiles):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('action', type=str, choices=['signal', 'bkg', 'signal_local'])
-    args = parser.parse_args()
-
-    if args.signal_local:
-        process_signal(
-            list(sorted(glob.iglob('raw_signal/*.root')))
-            )
-    elif args.signal:
-        process_signal(
-            iter_rootfiles_umd(
-                seutils.ls_wildcard(
-                    'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/sig_mz250_rinv0p3_mDark20_Mar31/*.root'
-                    )
-                + ['gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/thomas.klijnsma/qcdtest3/sig_ECF_typeCDMN_Jan29/1.root']
-                ),
-            )
-    elif args.bkg:
-        process_bkg(
-            iter_rootfiles_umd(seutils.ls_wildcard(
-                'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/bkg_May04_year2018/*/*.root'
-                )),
-            )
+    process_signal(
+        #list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/treemaker_mz350mDard10rinv0p3.root')))
+        list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/M250.root')))
+        )
 
 if __name__ == '__main__':
     main()

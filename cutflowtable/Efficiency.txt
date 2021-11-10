@@ -1,0 +1,374 @@
+file in:  Autumn18.TTJets_DiLept_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  67995
+number of events with at least one jet: 19693, efficiency of events with at least one jet: 28.962424
+number of events with |eta|<2.4: 19012, efficiency of events with AK15Jets eta<2.4: 27.960879
+number of events passing trigger: 535, efficiency of trigger: 0.786823
+number of events passing ecf>0: 526, efficiency of ecf>0: 0.773586
+number of events passing RTx>1.08: 467, efficiency of RTx>1.08: 0.686815
+NEle, NMuon: 80, efficiency of nEle, NMuons==0: 0.117656
+METFilter: 80, efficiency of METFilter: 0.117656
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  61669
+number of events with at least one jet: 12644, efficiency of events with at least one jet: 20.503008
+number of events with |eta|<2.4: 12241, efficiency of events with AK15Jets eta<2.4: 19.849519
+number of events passing trigger: 226, efficiency of trigger: 0.366473
+number of events passing ecf>0: 216, efficiency of ecf>0: 0.350257
+number of events passing RTx>1.08: 165, efficiency of RTx>1.08: 0.267557
+NEle, NMuon: 22, efficiency of nEle, NMuons==0: 0.035674
+METFilter: 22, efficiency of METFilter: 0.035674
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_SingleLeptFromTbar_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  70060
+number of events with at least one jet: 25852, efficiency of events with at least one jet: 36.899800
+number of events with |eta|<2.4: 25095, efficiency of events with AK15Jets eta<2.4: 35.819298
+number of events passing trigger: 885, efficiency of trigger: 1.263203
+number of events passing ecf>0: 863, efficiency of ecf>0: 1.231801
+number of events passing RTx>1.08: 727, efficiency of RTx>1.08: 1.037682
+NEle, NMuon: 292, efficiency of nEle, NMuons==0: 0.416786
+METFilter: 291, efficiency of METFilter: 0.415358
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  49912
+number of events with at least one jet: 12312, efficiency of events with at least one jet: 24.667415
+number of events with |eta|<2.4: 11953, efficiency of events with AK15Jets eta<2.4: 23.948149
+number of events passing trigger: 273, efficiency of trigger: 0.546963
+number of events passing ecf>0: 261, efficiency of ecf>0: 0.522920
+number of events passing RTx>1.08: 163, efficiency of RTx>1.08: 0.326575
+NEle, NMuon: 68, efficiency of nEle, NMuons==0: 0.136240
+METFilter: 68, efficiency of METFilter: 0.136240
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_SingleLeptFromT_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  71104
+number of events with at least one jet: 26348, efficiency of events with at least one jet: 37.055581
+number of events with |eta|<2.4: 25568, efficiency of events with AK15Jets eta<2.4: 35.958596
+number of events passing trigger: 927, efficiency of trigger: 1.303724
+number of events passing ecf>0: 896, efficiency of ecf>0: 1.260126
+number of events passing RTx>1.08: 752, efficiency of RTx>1.08: 1.057606
+NEle, NMuon: 340, efficiency of nEle, NMuons==0: 0.478173
+METFilter: 340, efficiency of METFilter: 0.478173
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  68451
+number of events with at least one jet: 17086, efficiency of events with at least one jet: 24.960921
+number of events with |eta|<2.4: 16598, efficiency of events with AK15Jets eta<2.4: 24.248002
+number of events passing trigger: 380, efficiency of trigger: 0.555142
+number of events passing ecf>0: 374, efficiency of ecf>0: 0.546376
+number of events passing RTx>1.08: 232, efficiency of RTx>1.08: 0.338929
+NEle, NMuon: 82, efficiency of nEle, NMuons==0: 0.119794
+METFilter: 82, efficiency of METFilter: 0.119794
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  107885
+number of events with at least one jet: 27526, efficiency of events with at least one jet: 25.514205
+number of events with |eta|<2.4: 26709, efficiency of events with AK15Jets eta<2.4: 24.756917
+number of events passing trigger: 638, efficiency of trigger: 0.591370
+number of events passing ecf>0: 618, efficiency of ecf>0: 0.572832
+number of events passing RTx>1.08: 236, efficiency of RTx>1.08: 0.218751
+NEle, NMuon: 111, efficiency of nEle, NMuons==0: 0.102887
+METFilter: 110, efficiency of METFilter: 0.101960
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_HT-600to800_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  8750
+number of events with at least one jet: 8748, efficiency of events with at least one jet: 99.977143
+number of events with |eta|<2.4: 8639, efficiency of events with AK15Jets eta<2.4: 98.731429
+number of events passing trigger: 3026, efficiency of trigger: 34.582857
+number of events passing ecf>0: 2992, efficiency of ecf>0: 34.194286
+number of events passing RTx>1.08: 1142, efficiency of RTx>1.08: 13.051429
+NEle, NMuon: 499, efficiency of nEle, NMuons==0: 5.702857
+METFilter: 498, efficiency of METFilter: 5.691429
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  6622
+number of events with at least one jet: 6621, efficiency of events with at least one jet: 99.984899
+number of events with |eta|<2.4: 6570, efficiency of events with AK15Jets eta<2.4: 99.214739
+number of events passing trigger: 4571, efficiency of trigger: 69.027484
+number of events passing ecf>0: 4523, efficiency of ecf>0: 68.302628
+number of events passing RTx>1.08: 1615, efficiency of RTx>1.08: 24.388402
+NEle, NMuon: 707, efficiency of nEle, NMuons==0: 10.676533
+METFilter: 706, efficiency of METFilter: 10.661432
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  76695
+number of events with at least one jet: 76694, efficiency of events with at least one jet: 99.998696
+number of events with |eta|<2.4: 76549, efficiency of events with AK15Jets eta<2.4: 99.809636
+number of events passing trigger: 74058, efficiency of trigger: 96.561705
+number of events passing ecf>0: 72948, efficiency of ecf>0: 95.114414
+number of events passing RTx>1.08: 22372, efficiency of RTx>1.08: 29.170089
+NEle, NMuon: 9641, efficiency of nEle, NMuons==0: 12.570572
+METFilter: 9624, efficiency of METFilter: 12.548406
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.TTJets_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  1274
+number of events with at least one jet: 1274, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 1274, efficiency of events with AK15Jets eta<2.4: 100.000000
+number of events passing trigger: 1273, efficiency of trigger: 99.921507
+number of events passing ecf>0: 1247, efficiency of ecf>0: 97.880691
+number of events passing RTx>1.08: 226, efficiency of RTx>1.08: 17.739403
+NEle, NMuon: 112, efficiency of nEle, NMuons==0: 8.791209
+METFilter: 111, efficiency of METFilter: 8.712716
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  103601
+number of events with at least one jet: 2505, efficiency of events with at least one jet: 2.417930
+number of events with |eta|<2.4: 2293, efficiency of events with AK15Jets eta<2.4: 2.213299
+number of events passing trigger: 0, efficiency of trigger: 0.000000
+number of events passing ecf>0: 0, efficiency of ecf>0: 0.000000
+number of events passing RTx>1.08: 0, efficiency of RTx>1.08: 0.000000
+NEle, NMuon: 0, efficiency of nEle, NMuons==0: 0.000000
+METFilter: 0, efficiency of METFilter: 0.000000
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  133144
+number of events with at least one jet: 43067, efficiency of events with at least one jet: 32.346182
+number of events with |eta|<2.4: 40217, efficiency of events with AK15Jets eta<2.4: 30.205642
+number of events passing trigger: 0, efficiency of trigger: 0.000000
+number of events passing ecf>0: 0, efficiency of ecf>0: 0.000000
+number of events passing RTx>1.08: 0, efficiency of RTx>1.08: 0.000000
+NEle, NMuon: 0, efficiency of nEle, NMuons==0: 0.000000
+METFilter: 0, efficiency of METFilter: 0.000000
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  13883
+number of events with at least one jet: 12887, efficiency of events with at least one jet: 92.825758
+number of events with |eta|<2.4: 12229, efficiency of events with AK15Jets eta<2.4: 88.086149
+number of events passing trigger: 44, efficiency of trigger: 0.316934
+number of events passing ecf>0: 11, efficiency of ecf>0: 0.079234
+number of events passing RTx>1.08: 6, efficiency of RTx>1.08: 0.043218
+NEle, NMuon: 3, efficiency of nEle, NMuons==0: 0.021609
+METFilter: 3, efficiency of METFilter: 0.021609
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  8295
+number of events with at least one jet: 8284, efficiency of events with at least one jet: 99.867390
+number of events with |eta|<2.4: 8028, efficiency of events with AK15Jets eta<2.4: 96.781193
+number of events passing trigger: 348, efficiency of trigger: 4.195298
+number of events passing ecf>0: 173, efficiency of ecf>0: 2.085594
+number of events passing RTx>1.08: 130, efficiency of RTx>1.08: 1.567209
+NEle, NMuon: 57, efficiency of nEle, NMuons==0: 0.687161
+METFilter: 57, efficiency of METFilter: 0.687161
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  34993
+number of events with at least one jet: 34986, efficiency of events with at least one jet: 99.979996
+number of events with |eta|<2.4: 34443, efficiency of events with AK15Jets eta<2.4: 98.428257
+number of events passing trigger: 8903, efficiency of trigger: 25.442231
+number of events passing ecf>0: 7805, efficiency of ecf>0: 22.304461
+number of events passing RTx>1.08: 4764, efficiency of RTx>1.08: 13.614151
+NEle, NMuon: 2147, efficiency of nEle, NMuons==0: 6.135513
+METFilter: 2145, efficiency of METFilter: 6.129797
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  27195
+number of events with at least one jet: 27195, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 27106, efficiency of events with AK15Jets eta<2.4: 99.672734
+number of events passing trigger: 24953, efficiency of trigger: 91.755837
+number of events passing ecf>0: 23738, efficiency of ecf>0: 87.288104
+number of events passing RTx>1.08: 9164, efficiency of RTx>1.08: 33.697371
+NEle, NMuon: 4444, efficiency of nEle, NMuons==0: 16.341239
+METFilter: 4443, efficiency of METFilter: 16.337562
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8
+total number of events:  54172
+number of events with at least one jet: 54172, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 54169, efficiency of events with AK15Jets eta<2.4: 99.994462
+number of events passing trigger: 54168, efficiency of trigger: 99.992616
+number of events passing ecf>0: 52062, efficiency of ecf>0: 96.104999
+number of events passing RTx>1.08: 11748, efficiency of RTx>1.08: 21.686480
+NEle, NMuon: 5580, efficiency of nEle, NMuons==0: 10.300524
+METFilter: 5572, efficiency of METFilter: 10.285756
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.ZJetsToNuNu_HT-100To200_13TeV-madgraph
+total number of events:  152488
+number of events with at least one jet: 2708, efficiency of events with at least one jet: 1.775877
+number of events with |eta|<2.4: 2104, efficiency of events with AK15Jets eta<2.4: 1.379781
+number of events passing trigger: 0, efficiency of trigger: 0.000000
+number of events passing ecf>0: 0, efficiency of ecf>0: 0.000000
+number of events passing RTx>1.08: 0, efficiency of RTx>1.08: 0.000000
+NEle, NMuon: 0, efficiency of nEle, NMuons==0: 0.000000
+METFilter: 0, efficiency of METFilter: 0.000000
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.ZJetsToNuNu_HT-200To400_13TeV-madgraph
+total number of events:  133491
+number of events with at least one jet: 40503, efficiency of events with at least one jet: 30.341371
+number of events with |eta|<2.4: 35646, efficiency of events with AK15Jets eta<2.4: 26.702924
+number of events passing trigger: 0, efficiency of trigger: 0.000000
+number of events passing ecf>0: 0, efficiency of ecf>0: 0.000000
+number of events passing RTx>1.08: 0, efficiency of RTx>1.08: 0.000000
+NEle, NMuon: 0, efficiency of nEle, NMuons==0: 0.000000
+METFilter: 0, efficiency of METFilter: 0.000000
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.ZJetsToNuNu_HT-400To600_13TeV-madgraph
+total number of events:  97839
+number of events with at least one jet: 89977, efficiency of events with at least one jet: 91.964350
+number of events with |eta|<2.4: 84211, efficiency of events with AK15Jets eta<2.4: 86.070994
+number of events passing trigger: 222, efficiency of trigger: 0.226903
+number of events passing ecf>0: 9, efficiency of ecf>0: 0.009199
+number of events passing RTx>1.08: 9, efficiency of RTx>1.08: 0.009199
+NEle, NMuon: 9, efficiency of nEle, NMuons==0: 0.009199
+METFilter: 9, efficiency of METFilter: 0.009199
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.ZJetsToNuNu_HT-600To800_13TeV-madgraph
+total number of events:  28468
+number of events with at least one jet: 28346, efficiency of events with at least one jet: 99.571449
+number of events with |eta|<2.4: 27213, efficiency of events with AK15Jets eta<2.4: 95.591541
+number of events passing trigger: 1148, efficiency of trigger: 4.032598
+number of events passing ecf>0: 313, efficiency of ecf>0: 1.099480
+number of events passing RTx>1.08: 313, efficiency of RTx>1.08: 1.099480
+NEle, NMuon: 310, efficiency of nEle, NMuons==0: 1.088942
+METFilter: 310, efficiency of METFilter: 1.088942
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.ZJetsToNuNu_HT-800To1200_13TeV-madgraph
+total number of events:  23920
+number of events with at least one jet: 23876, efficiency of events with at least one jet: 99.816054
+number of events with |eta|<2.4: 23413, efficiency of events with AK15Jets eta<2.4: 97.880435
+number of events passing trigger: 6076, efficiency of trigger: 25.401338
+number of events passing ecf>0: 5184, efficiency of ecf>0: 21.672241
+number of events passing RTx>1.08: 4423, efficiency of RTx>1.08: 18.490803
+NEle, NMuon: 4412, efficiency of nEle, NMuons==0: 18.444816
+METFilter: 4411, efficiency of METFilter: 18.440635
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.ZJetsToNuNu_HT-1200To2500_13TeV-madgraph
+total number of events:  6156
+number of events with at least one jet: 6152, efficiency of events with at least one jet: 99.935023
+number of events with |eta|<2.4: 6115, efficiency of events with AK15Jets eta<2.4: 99.333983
+number of events passing trigger: 5549, efficiency of trigger: 90.139701
+number of events passing ecf>0: 5192, efficiency of ecf>0: 84.340481
+number of events passing RTx>1.08: 3193, efficiency of RTx>1.08: 51.868096
+NEle, NMuon: 3185, efficiency of nEle, NMuons==0: 51.738142
+METFilter: 3181, efficiency of METFilter: 51.673164
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph
+total number of events:  15185
+number of events with at least one jet: 15184, efficiency of events with at least one jet: 99.993415
+number of events with |eta|<2.4: 15178, efficiency of events with AK15Jets eta<2.4: 99.953902
+number of events passing trigger: 15177, efficiency of trigger: 99.947316
+number of events passing ecf>0: 14301, efficiency of ecf>0: 94.178466
+number of events passing RTx>1.08: 5606, efficiency of RTx>1.08: 36.918011
+NEle, NMuon: 5581, efficiency of nEle, NMuons==0: 36.753375
+METFilter: 5568, efficiency of METFilter: 36.667764
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_300to470_TuneCP5_13TeV_pythia8
+total number of events:  160000
+number of events with at least one jet: 159895, efficiency of events with at least one jet: 99.934375
+number of events with |eta|<2.4: 156011, efficiency of events with AK15Jets eta<2.4: 97.506875
+number of events passing trigger: 3265, efficiency of trigger: 2.040625
+number of events passing ecf>0: 3182, efficiency of ecf>0: 1.988750
+number of events passing RTx>1.08: 375, efficiency of RTx>1.08: 0.234375
+NEle, NMuon: 374, efficiency of nEle, NMuons==0: 0.233750
+METFilter: 372, efficiency of METFilter: 0.232500
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8
+total number of events:  136000
+number of events with at least one jet: 135993, efficiency of events with at least one jet: 99.994853
+number of events with |eta|<2.4: 135050, efficiency of events with AK15Jets eta<2.4: 99.301471
+number of events passing trigger: 68262, efficiency of trigger: 50.192647
+number of events passing ecf>0: 66030, efficiency of ecf>0: 48.551471
+number of events passing RTx>1.08: 6049, efficiency of RTx>1.08: 4.447794
+NEle, NMuon: 6016, efficiency of nEle, NMuons==0: 4.423529
+METFilter: 6006, efficiency of METFilter: 4.416176
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_600to800_TuneCP5_13TeV_pythia8
+total number of events:  60000
+number of events with at least one jet: 60000, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 59870, efficiency of events with AK15Jets eta<2.4: 99.783333
+number of events passing trigger: 57662, efficiency of trigger: 96.103333
+number of events passing ecf>0: 55556, efficiency of ecf>0: 92.593333
+number of events passing RTx>1.08: 3967, efficiency of RTx>1.08: 6.611667
+NEle, NMuon: 3945, efficiency of nEle, NMuons==0: 6.575000
+METFilter: 3935, efficiency of METFilter: 6.558333
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_800to1000_TuneCP5_13TeV_pythia8_ext1
+total number of events:  57000
+number of events with at least one jet: 57000, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 56979, efficiency of events with AK15Jets eta<2.4: 99.963158
+number of events passing trigger: 56811, efficiency of trigger: 99.668421
+number of events passing ecf>0: 54457, efficiency of ecf>0: 95.538596
+number of events passing RTx>1.08: 2978, efficiency of RTx>1.08: 5.224561
+NEle, NMuon: 2956, efficiency of nEle, NMuons==0: 5.185965
+METFilter: 2941, efficiency of METFilter: 5.159649
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8
+total number of events:  45000
+number of events with at least one jet: 44999, efficiency of events with at least one jet: 99.997778
+number of events with |eta|<2.4: 44999, efficiency of events with AK15Jets eta<2.4: 99.997778
+number of events passing trigger: 44975, efficiency of trigger: 99.944444
+number of events passing ecf>0: 42982, efficiency of ecf>0: 95.515556
+number of events passing RTx>1.08: 1991, efficiency of RTx>1.08: 4.424444
+NEle, NMuon: 1982, efficiency of nEle, NMuons==0: 4.404444
+METFilter: 1973, efficiency of METFilter: 4.384444
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_1400to1800_TuneCP5_13TeV_pythia8
+total number of events:  96000
+number of events with at least one jet: 96000, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 95999, efficiency of events with AK15Jets eta<2.4: 99.998958
+number of events passing trigger: 95995, efficiency of trigger: 99.994792
+number of events passing ecf>0: 91462, efficiency of ecf>0: 95.272917
+number of events passing RTx>1.08: 3483, efficiency of RTx>1.08: 3.628125
+NEle, NMuon: 3466, efficiency of nEle, NMuons==0: 3.610417
+METFilter: 3449, efficiency of METFilter: 3.592708
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_1800to2400_TuneCP5_13TeV_pythia8
+total number of events:  85880
+number of events with at least one jet: 85880, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 85880, efficiency of events with AK15Jets eta<2.4: 100.000000
+number of events passing trigger: 85879, efficiency of trigger: 99.998836
+number of events passing ecf>0: 81564, efficiency of ecf>0: 94.974383
+number of events passing RTx>1.08: 2778, efficiency of RTx>1.08: 3.234746
+NEle, NMuon: 2763, efficiency of nEle, NMuons==0: 3.217280
+METFilter: 2725, efficiency of METFilter: 3.173032
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_2400to3200_TuneCP5_13TeV_pythia8
+total number of events:  58000
+number of events with at least one jet: 58000, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 57998, efficiency of events with AK15Jets eta<2.4: 99.996552
+number of events passing trigger: 57998, efficiency of trigger: 99.996552
+number of events passing ecf>0: 55084, efficiency of ecf>0: 94.972414
+number of events passing RTx>1.08: 1672, efficiency of RTx>1.08: 2.882759
+NEle, NMuon: 1662, efficiency of nEle, NMuons==0: 2.865517
+METFilter: 1641, efficiency of METFilter: 2.829310
+****************************************************************************************************
+****************************************************************************************************
+file in:  Autumn18.QCD_Pt_3200toInf_TuneCP5_13TeV_pythia8
+total number of events:  40000
+number of events with at least one jet: 40000, efficiency of events with at least one jet: 100.000000
+number of events with |eta|<2.4: 40000, efficiency of events with AK15Jets eta<2.4: 100.000000
+number of events passing trigger: 40000, efficiency of trigger: 100.000000
+number of events passing ecf>0: 37988, efficiency of ecf>0: 94.970000
+number of events passing RTx>1.08: 1106, efficiency of RTx>1.08: 2.765000
+NEle, NMuon: 1101, efficiency of nEle, NMuons==0: 2.752500
+METFilter: 1089, efficiency of METFilter: 2.722500
+****************************************************************************************************
+****************************************************************************************************
