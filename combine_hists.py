@@ -108,9 +108,6 @@ def combine_ds_with_weights(ds, weights):
     """
     if len(ds) != len(weights): raise ValueError('len ds != len weights')
     counts = [ len(d['score']) for d in ds ]
-    optimal_counts = optimal_count(counts, weights)
-
-    # Purely for debugging:
     print('Counts:')
     for i, (count, opt_count) in enumerate(zip(counts, optimal_counts)):
         print(f'{i} : {count:8} available, using {opt_count}')
@@ -157,6 +154,23 @@ def make_mt_histogram(name, mt, score=None, threshold=None, mt_binning=None, nor
         integral = h.Integral(0, h.GetNbinsX()+1)
         h.Scale(normalization*efficiency / integral if integral != 0. else 0.)
     return h
+
+
+def make_rtvsmt_histogram(name, mt, rt, score=None, threshold=None, mt_binning=None, rt_binning=None):
+    """
+    Dumps the rtvsmt array to a TH2F to study sculpting. If `score` and `threshold` are supplied, a
+    cut score>threshold will be applied.
+    """
+    try_import_ROOT()
+    import ROOT
+    from array import array
+    if threshold is not None: mt = mt[score > threshold]
+    binning = array('f', MT_BINNING if mt_binning is None else mt_binning)
+    rt_binning = array('f', RT_BINNING if rt_binning is None else rt_binning)
+    h2d = ROOT.TH2F(name, name, len(rt_binning)-1, rt_binning, len(binning)-1, binning)
+    ROOT.SetOwnership(h2d, False)
+    [ h2d.Fill(x,y) for x, y in zip(mt, rt) ]
+    return h2d
 
 
 def make_summed_histogram(name, ds, norms, threshold=None, mt_binning=None):
@@ -209,6 +223,7 @@ def dump_score_npz_worker(input):
     To be used in dump_score_npzs_mp.
     '''
     dump_score_npz(*input)
+
 
 def dump_score_npzs_mp(model, rootfiles, outfile, n_threads=12, keep_tmp_files=False):
     '''
@@ -311,4 +326,5 @@ def test_sum_hists():
     printh(h2)
 
 if __name__ == '__main__':
-    test_get_scores()
+    # test_get_scores()
+    combine_npzs('/mnt/hadoop/cms/store/user/snabili/BKG/BDT/genjetpt375_mz250_mdark10_rinv0.3/')
