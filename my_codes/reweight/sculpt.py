@@ -3,27 +3,42 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 #import glob
 
-score_rew = np.load('ptreweight_score.npz')
-score_now = np.load('noweight_score.npz')
+score_rew = np.load('npzfiles/ptreweight_score.npz')
+score_now = np.load('npzfiles/noweight_score.npz')
 
-all_var_reweight = np.load('ptreweight_allvariables.npz')
-all_var_noweight = np.load('noweight_allvarialbles.npz')
+all_var_reweight = np.load('npzfiles/ptreweight_allvariables.npz')
+all_var_noweight = np.load('npzfiles/noweight_allvarialbles.npz')
 
 # all variables order: 
 #  X.append([subl.ptD, subl.axismajor, subl.multiplicity,subl.girth, subl.axisminor, subl.metdphi,subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2, ak4partFlav.partonFlovor,subl.pt, subl.eta, subl.phi, subl.energy, subl.rt, subl.mt])
-mt_reweight = all_var_reweight[:,16]
-pt_reweight = all_var_reweight[:,11]
-ecfd2b1_reweight = all_var_reweight[:,7]
-girth_reweight = all_var_reweight[:,3]
+mt_reweight = all_var_reweight['arr_0'][:,16]
+pt_reweight = all_var_reweight['arr_0'][:,11]
+ecfd2b1_reweight = all_var_reweight['arr_0'][:,7]
+girth_reweight = all_var_reweight['arr_0'][:,3]
 score_reweight = score_rew['arr_0']
 
 mt_noweight = all_var_noweight['arr_0'][:,16]
 pt_noweight = all_var_noweight['arr_0'][:,11]
 ecfd2b1_noweight = all_var_noweight['arr_0'][:,7]
 girth_noweight = all_var_noweight['arr_0'][:,3]
+multiplicity_noweight = all_var_noweight['arr_0'][:,2]
+ptD_noweight = all_var_noweight['arr_0'][:,0]
 score_noweight = score_now['arr_0']
 
-plt.figure('scorevsmt_noweight')
+high1_score = score_noweight > 0.5
+high2_score = score_noweight < 0.7
+low1_score = score_noweight < 0.01
+
+plt.figure('multiplicity_noweight')
+plt.hist(ptD_noweight[high1_score & high2_score], bins=40)
+plt.hist(ptD_noweight[low1_score], bins=40, alpha=0.4)
+plt.xlabel('multiplicity')
+plt.grid(True)
+plt.title('QCD multiplicity: lower & higher bdt peak')
+plt.show()
+plt.savefig('pngs/rewvsnow/pngs_nw/multiplicity_lowhighpeak.pdf')
+
+'''plt.figure('scorevsmt_noweight')
 plt.hist2d(mt_noweight, score_noweight, bins=40, norm=LogNorm())
 plt.xlabel('$M_T$ (GeV)')
 plt.ylabel('score')
@@ -89,11 +104,11 @@ plt.title('QCD $M_T$ reweighted')
 plt.savefig('pngs/rewvsnow/mt.pdf')
 
 plt.figure('Scores')
-plt.hist(score_reweight,bins=40, density=True, label=['re-weight'])
-plt.hist(score_noweight,bins=40, density=True, label=['no-weight'],alpha=0.3)
+plt.hist(score_reweight,bins=40, density=True, label=['pt re-weight'])
+plt.hist(score_noweight,bins=40, density=True, label=['no re-weight'],alpha=0.3)
 plt.legend()
 plt.xlabel('$BDT_{score}$')
 plt.grid(True)
 plt.yscale('log')
 plt.title('QCD $BDT_{score}$ re-weight & no-weight')
-plt.savefig('pngs/rewvsnow/scores.pdf')
+plt.savefig('pngs/rewvsnow/scores.pdf')'''
