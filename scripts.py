@@ -207,7 +207,8 @@ def make_histograms(rootfile, postbdt_dir):
 
     # binning = MT_BINNING
     left = 210.
-    right = 500.
+    #right = 500.
+    right = 800.
     bin_width = 8.
     binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
 
@@ -310,7 +311,8 @@ def make_histograms_Oct05(rootfile):
 
     # binning = MT_BINNING
     left = 210.
-    right = 500.
+    #right = 500.
+    right = 800.
     bin_width = 8.
     binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
 

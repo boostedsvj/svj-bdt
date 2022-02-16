@@ -18,13 +18,15 @@ def get_reweighted_allbkg_features(sets_of_npzs, weights, mz400_template, mz400_
         n_events_todo = ns_events
         mz400_comb = []        
         for npz in nsig_pzs:
-            X = np.load(npz)['X'][:,:12]
+            if np.load(npz)['X'].shape[0] == 0: continue
+            X = np.load(npz)['X'][:,:13]
             n_events_this_npz = X.shape[0]
             if n_events_this_npz > n_events_todo:
                 X = X[:n_events_todo]
             mz400_comb.append(X)
     mz400_final = np.vstack(mz400_comb)
-    pt_sig = mz400_final[:,11]
+    #pt_sig = mz400_final[:,11]
+    pt_sig = mz400_final[:,12]
 
     
     #need to debug
@@ -37,7 +39,8 @@ def get_reweighted_allbkg_features(sets_of_npzs, weights, mz400_template, mz400_
     for n_events, npzs in zip(n_events_per_set, sets_of_npzs):
         n_events_todo = n_events
         for npz in npzs:
-            X = np.load(npz)['X'][:,:12]
+            if np.load(npz)['X'].shape[0] == 0: continue
+            X = np.load(npz)['X'][:,:13]
             #print(f'x shape: {X.shape}')
             n_events_this_npz = X.shape[0]
             if n_events_this_npz > n_events_todo:
@@ -49,7 +52,8 @@ def get_reweighted_allbkg_features(sets_of_npzs, weights, mz400_template, mz400_
             
             
             pt = []
-            pt_qcd = np.load(npz)['X'][:,11] 
+            #pt_qcd = np.load(npz)['X'][:,11] 
+            pt_qcd = np.load(npz)['X'][:,12] 
             fig = plt.figure(figsize=(6,6))
             ax1 = fig.gca()
             pt.append(pt_qcd)
@@ -132,6 +136,7 @@ def get_reweighted_allbkg_features(sets_of_npzs, weights, mz400_template, mz400_
     for n_events, npzs in zip(n_events_per_set, sets_of_npzs):
         n_events_todo = n_events*wpt_final
         for npz in npzs:
+            if np.load(npz)['X'].shape[0] == 0: continue
             X = np.load(npz)['X'][:,:]
             n_events_this_npz = X.shape[0]*wpt_final
             if n_events_this_npz.any() > n_events_todo.any():
