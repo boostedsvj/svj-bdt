@@ -15,6 +15,9 @@ def get_allbkg_features(sets_of_npzs, weights, n_target_events=30000):
         print(f'n_events: {n_events}')
         n_events_todo = n_events
         for npz in npzs:
+            #if np.load(npz, allow_pickle=True)['X'].shape[0] == 0: continue
+            #X = np.load(npz, allow_pickle=True)['X'][:,:]
+            if np.load(npz)['X'].shape[0] == 0: continue
             X = np.load(npz)['X'][:,:]
             n_events_this_npz = X.shape[0]
             if n_events_this_npz > n_events_todo:

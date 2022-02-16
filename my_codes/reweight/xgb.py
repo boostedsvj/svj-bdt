@@ -15,8 +15,9 @@ def get_bkg_features(sets_of_npzs, weights, n_target_events=30000):
         print(f'n_events: {n_events}')
         n_events_todo = n_events
         for npz in npzs:
-            #X = np.load(npz)['X'][:,:9]
-            X = np.load(npz)['X'][:,:11]
+            X = np.load(npz)['X'][:,:9] #ptD
+            #X = np.load(npz)['X'][:,:10] #multiplicity
+            #X = np.load(npz)['X'][:,:11] #constituents
             n_events_this_npz = X.shape[0]
             if n_events_this_npz > n_events_todo:
                 X = X[:n_events_todo]

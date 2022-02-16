@@ -1,5 +1,5 @@
 #extra packages
-#import numpy as np
+import numpy as np
 #import matplotlib.pyplot as plt
 #from matplotlib.colors import LogNorm
 import xgboost as x
@@ -12,39 +12,43 @@ import glob
 
 qcd_labels = ['QCD_Pt_300to470', 'QCD_Pt_470to600', 'QCD_Pt_600to800', 'QCD_Pt_800to1000', 'QCD_Pt_1000to1400']
 qcd_weights = [6826.0*0.0023, 552.6*0.0442, 156.6*0.0656, 26.32*0.0516, 7.50*0.0438]
-sets_of_npzs = [ glob.iglob(f'/home/snabili/data/bdt/svj-bdt/my_codes/parton_flavor/prebdt_Nov15/*{l}*/*.npz') for l in qcd_labels]
+#sets_of_npzs = [ glob.iglob(f'/home/snabili/data/bdt/svj-bdt/my_codes/reweight/prebdt_Nov30_rtx108/*{l}*/*.npz') for l in qcd_labels]
+#sets_of_npzs = [ glob.iglob(f'/home/snabili/data/bdt/svj-bdt/my_codes/parton_flavor/prebdt_Nov15/*{l}*/*.npz') for l in qcd_labels]
+sets_of_npzs = [ glob.iglob(f'/home/snabili/data/bdt/svj-bdt/my_codes/reweight/prebdt_Dec10_RTx11_offsetconstitute/*{l}*/*.npz') for l in qcd_labels]
 
 sig_label = ['mz400']
 benchmark_weight = [0.0053627*578.3]
-sig_benchmark = [ glob.iglob(f'/home/snabili/data/bdt/svj-bdt/my_codes/parton_flavor/prebdt_Nov15/*{l}*/*.npz') for l in sig_label]
+sig_benchmark = [ glob.iglob(f'/home/snabili/data/bdt/svj-bdt/my_codes/reweight/prebdt_Nov30_rtx108/*{l}*/*.npz') for l in sig_label]
 
 # all variables order: 
-#  X.append([subl.ptD, subl.axismajor, subl.multiplicity,subl.girth, subl.axisminor, subl.metdphi,subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2, ak4partFlav.partonFlovor,subl.pt, subl.eta, subl.phi, subl.energy, subl.rt, subl.mt])
+#  X.append([subl.ptD, subl.axismajor, subl.multiplicity,subl.girth, subl.axisminor, subl.metdphi,subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2, ak4partFlav.partonFlovor,subl.pt, subl.eta, subl.phi, subl.energy, subl.rt, subl.mt, met, subl.smd])
 X_bkg = get_bkg_features(sets_of_npzs, qcd_weights) #score
-X_bkg_all = get_allbkg_features(sets_of_npzs, qcd_weights) #all variables
-X_bkgreweighted = get_reweighted_bkg_features(sets_of_npzs, qcd_weights, sig_benchmark, benchmark_weight)#score
-X_allbkgreweighted = get_reweighted_allbkg_features(sets_of_npzs, qcd_weights, sig_benchmark, benchmark_weight) #all variables
+#X_bkg_all = get_allbkg_features(sets_of_npzs, qcd_weights) #all variables
+#X_bkgreweighted = get_reweighted_bkg_features(sets_of_npzs, qcd_weights, sig_benchmark, benchmark_weight)#score
+#X_allbkgreweighted = get_reweighted_allbkg_features(sets_of_npzs, qcd_weights, sig_benchmark, benchmark_weight) #all variables
 
 
 #no reweight score
-model_noreweight = x.XGBClassifier()
-model_noreweight.load_model('svjbdt_Nov15.json') #no reweight
-score_noreweight = model_noreweight.predict_proba(np.array(X_bkg))[:,1]
+#model_noreweight = x.XGBClassifier()
+#model_noreweight.load_model('svjbdt_Nov15.json') #no reweight
+#model_noreweight.load_model('svjbdt_Dec02.json') #reweight
+#score_noreweight = model_noreweight.predict_proba(np.array(X_bkg))[:,1]
 
 #pt reweight score
 model_ptreweight = x.XGBClassifier()
-model_ptreweight.load_model('svjbdt_Nov22.json') #pt reweight
-score_ptreweight = model_ptreweight.predict_proba(np.array(X_bkgreweighted))[:,1]
+#model_ptreweight.load_model('svjbdt_Nov22.json') #pt reweight
+model_ptreweight.load_model('/home/snabili/data/bdt/svj-bdt/my_codes/reweight/weight_study/pt_multi/rtx11_sigweight_svjbdt_ptreweight_Dec10.json') #pt reweight
+score_ptreweight = model_ptreweight.predict_proba(np.array(X_bkg))[:,1]
 
 # noweight score and allvariables
 # all variables order: 
-#  X.append([subl.ptD, subl.axismajor, subl.multiplicity,subl.girth, subl.axisminor, subl.metdphi,subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2, ak4partFlav.partonFlovor,subl.pt, subl.eta, subl.phi, subl.energy, subl.rt, subl.mt])
-np.savez('npzfiles/noweight_score.npz', score_noreweight)
-np.savez('npzfiles/noweight_allvarialbles.npz', X_bkg_all[:,:])
+#  X.append([subl.ptD, subl.axismajor, subl.multiplicity,subl.girth, subl.axisminor, subl.metdphi,subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2, ak4partFlav.partonFlovor,subl.pt, subl.eta, subl.phi, subl.energy, subl.rt, subl.mt, subl.met])
+np.savez('npzfiles/Dec10/ptweight_score_new.npz', score_ptreweight)
+#np.savez('npzfiles/Dec10/ptweight_allvarialbles.npz', X_bkg_all[:,:])
 
 # pt re-weighted files
-np.savez('npzfiles/ptreweight_score.npz', score_ptreweight)
-np.savez('npzfiles/ptreweight_allvariables.npz', X_allbkgreweighted[:,:])
+#np.savez('npzfiles/Nov29/ptreweight_score.npz', score_ptreweight)
+#np.savez('npzfiles/Nov29/ptreweight_allvariables.npz', X_allbkgreweighted[:,:])
 
 
 '''
