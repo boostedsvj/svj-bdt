@@ -156,6 +156,20 @@ def make_mt_histogram(name, mt, score=None, threshold=None, mt_binning=None, nor
     return h
 
 
+def make_summed_histogram(name, ds, norms, threshold=None, mt_binning=None):
+    from operator import add
+    from functools import reduce
+    h = reduce(add, (
+        make_mt_histogram(
+            str(uuid.uuid4()), d['mt'], d['score'],
+            threshold=threshold, normalization=norm, mt_binning=mt_binning
+            )
+        for d, norm in zip(ds, norms)
+        ))
+    h.SetNameTitle(name, name)
+    return h
+
+    
 def make_rtvsmt_histogram(name, mt, rt, score=None, threshold=None, mt_binning=None, rt_binning=None):
     """
     Dumps the rtvsmt array to a TH2F to study sculpting. If `score` and `threshold` are supplied, a
@@ -171,20 +185,6 @@ def make_rtvsmt_histogram(name, mt, rt, score=None, threshold=None, mt_binning=N
     ROOT.SetOwnership(h2d, False)
     [ h2d.Fill(x,y) for x, y in zip(mt, rt) ]
     return h2d
-
-
-def make_summed_histogram(name, ds, norms, threshold=None, mt_binning=None):
-    from operator import add
-    from functools import reduce
-    h = reduce(add, (
-        make_mt_histogram(
-            str(uuid.uuid4()), d['mt'], d['score'],
-            threshold=threshold, normalization=norm, mt_binning=mt_binning
-            )
-        for d, norm in zip(ds, norms)
-        ))
-    h.SetNameTitle(name, name)
-    return h
 
 
 def optimal_count(counts, weights):

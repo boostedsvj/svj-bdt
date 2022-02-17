@@ -519,7 +519,8 @@ def get_dicts_from_postbdt_directory(directory, split=False):
 
 
 @cli.command()
-def print_statistics_Oct11():
+@click.argument('postbdtdir')
+def print_statistics(postbdtdir):
     def clean_label(label):
         for p in [
             'Autumn18.', '_TuneCP5', '_13TeV', '_pythia8', '-pythia8',
@@ -534,7 +535,7 @@ def print_statistics_Oct11():
         'eta<2.4',
         'trigger',
         'ecf>0',
-        'rtx>1.08',
+        'rtx>1.1',
         'nleptons==0',
         'metfilter',
         'preselection',
@@ -549,8 +550,7 @@ def print_statistics_Oct11():
             table.append(column)
         print_table(table, transpose=True)
 
-    # for labels, xss, dicts in get_dicts_from_postbdt_directory('postbdt_npzs_Oct11_5masspoints', split=True):
-    for labels, xss, dicts in get_dicts_from_postbdt_directory('postbdt_npzs_Nov9_5masspoints_qcdttjetswjetszjets', split=True):
+    for labels, xss, dicts in get_dicts_from_postbdt_directory(postbdtdir, split=True):
         print_cutflow(labels, xss, dicts)
 
 
@@ -643,16 +643,17 @@ def print_statistics_Oct05():
 
 @cli.command()
 @click.option('-o', '--rootfile', default='test.root')
-def make_histograms_Oct05(rootfile):
+@click.argument('postbdtdir')
+def make_histograms_Oct05(postbdtdir, rootfile):
     """
     BDT version Sep22, mz=250,300,350, all 4 bkgs
     """
     try_import_ROOT()
     import ROOT
-    qcd, ttjets, wjets, zjets, signal = get_dicts_from_postbdt_directory('postbdt_npzs_Nov9_5masspoints_qcdttjetswjetszjets', split=True)
+    qcd, ttjets, wjets, zjets, signal = get_dicts_from_postbdt_directory(postbdtdir, split=True)
 
     def calc_n_events_at_lumi(dicts, xss, lumi=137.2):
-        return np.array([d["n_presel"]/d["n_total"] * xs * lumi*1e3 for d, xs in zip(dicts, xss)])
+        return np.array([d["preselection"]/d["total"] * xs * lumi*1e3 for d, xs in zip(dicts, xss)])
 
     qcd_n137 = calc_n_events_at_lumi(qcd[2], qcd[1])
     ttjets_n137 = calc_n_events_at_lumi(ttjets[2], ttjets[1])
