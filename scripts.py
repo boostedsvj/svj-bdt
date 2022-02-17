@@ -809,37 +809,6 @@ def get_combined_qcd_bkg():
     qcd = combine_ds_with_weights(qcd_ds, [136.52, 278.51, 150.96, 26.24, 7.49])
     return qcd
 
-# def get_combined_bkg():
-#     qcd = combine_ds_with_weights(qcd_ds, qcd_sel_eff*qcd_crossections)
-
-
-@cli.command()
-@click.option('-o', '--outputfile', default='bkg.npz')
-def get_combined_bkg(outputfile):
-    print('Reading individual bkg .npzs')
-    bkg_npzs = [
-        for directory in [
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.QCD_Pt_300to470_TuneCP5_13TeV_pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.QCD_Pt_470to600_TuneCP5_13TeV_pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.QCD_Pt_600to800_TuneCP5_13TeV_pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.QCD_Pt_800to1000_TuneCP5_13TeV_pythia8_ext1',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.QCD_Pt_1000to1400_TuneCP5_13TeV_pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.TTJets_TuneCP5_13TeV-madgraphMLM-pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.TTJets_HT-600to800_TuneCP5_13TeV-madgraphMLM-pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.TTJets_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.TTJets_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8',
-            'postbdt_npzs_Oct21_5mass_qcdttjetswjetszjets/Autumn18.TTJets_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8',
-            ]
-        ]
-    print('Creating combined dict for all bkg bins')
-    bkg_ds = [ combine_npzs(npzs) for npzs in bkg_npzs ]
-    print('Combining bkg bins with weights')
-    bkg = combine_ds_with_weights(bkg_ds, np.concatenate((qcd_presel_eff*qcd_crosssections, ttjets_presel_eff*ttjets_crosssections)))
-    return bkg
-
 
 @cli.command()
 @click.option('-o', '--rootfile', default='test.root')

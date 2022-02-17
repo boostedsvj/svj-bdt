@@ -15,10 +15,6 @@ except ImportError:
 def cli():
     pass
 
-def combine_mz_with_weights(directory, weights):
-    ds = combine_npzs(glob.glob(osp.join(directory, '*.npz')))
-    return combine_ds_with_weights(ds, weights)
-
 qcd_sel_eff = np.array([0.0023, 0.0442, 0.0656, 0.0516, 0.0438])
 qcd_crossections = np.array([6826.0, 552.6, 156.6, 26.3, 7.5])
 

@@ -135,17 +135,12 @@ def preselection(event, cut_flow=None):
 
     if abs(event[b'JetsAK15.fCoordinates.fEta'][1]) > 2.4:
         return False
-<<<<<<< HEAD
     cut_flow.plus_one('eta<2.4')
 
     if len(event[b'JetsAK8.fCoordinates.fPt']) == 0 or event[b'JetsAK8.fCoordinates.fPt'][0] < 550.:
         return False
     cut_flow.plus_one('trigger')
 
-=======
-    #elif np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.08:
-    #    return False
->>>>>>> histo bdt changes
     for ecf in [
         b'JetsAK15_ecfC2b1',
         # b'JetsAK15_ecfC2b2',
