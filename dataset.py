@@ -334,11 +334,45 @@ def iter_rootfiles_umd(rootfiles):
             yield tmpfile
 
 
+'''def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--action', type=str, choices=['signal', 'bkg', 'signal_local'])
+    args = parser.parse_args
+
+
+    if args.signal_local:
+        process_signal(
+            list(sorted(glob.iglob('raw_signal/*.root')))
+            )
+    elif args.signal:
+    if args.signal:
+        process_signal(
+            iter_rootfiles_umd(
+                seutils.ls_wildcard(
+                    #'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/sig_mz250_rinv0p3_mDark20_Mar31/*.root'
+		    #'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz250_mdark10_rinv0.3/*.root'
+		    '/home/snabili/Bsvj/YiMu_genSamples/finaltreemakersamples/M250.root'
+                    ),
+                #+ ['gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/thomas.klijnsma/qcdtest3/sig_ECF_typeCDMN_Jan29/1.root']
+                #),
+            ))
+    elif args.bkg:
+        process_bkg(
+            iter_rootfiles_umd(seutils.ls_wildcard(
+                'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/bkg_May04_year2018/*/*.root'
+                )),
+            )'''
+
 def main():
-    process_signal(
-        #list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/treemaker_mz350mDard10rinv0p3.root')))
-        list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/M250.root')))
-        )
+    parser = argparse.ArgumentParser()
+    parser.add_argument('signal', type=str)
+    args = parser.parse_args()
+
+    if args.signal:
+      process_signal(
+            #list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/treemaker_mz350mDard10rinv0p3.root')))
+            list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/M250.root')))
+            )
 
 if __name__ == '__main__':
     main()
