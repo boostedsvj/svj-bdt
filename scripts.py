@@ -1,9 +1,8 @@
-import glob, math, re
+import glob, math, re, sys, os, os.path as osp
 import ROOT
 import numpy as np
 import xgboost as xgb
 import seutils
-from combine_hists import *
 import itertools
 from array import array
 from contextlib import contextmanager
@@ -13,6 +12,15 @@ try:
 except ImportError:
     print('First install click:\npip install click')
     raise
+
+# Add this directory to the python path, so the imports below work
+sys.path.append(osp.dirname(osp.abspath(__file__)))
+import bdtcode
+
+import bdtcode
+import bdtcode.histogramming as H
+
+
 
 def get_model(modeljson):
     model = xgb.XGBClassifier()
@@ -137,7 +145,7 @@ def get_dicts_from_postbdt_directory(directory, split=False):
     labels.remove('Autumn18.TTJets_SingleLeptFromTbar_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
     labels.remove('Autumn18.TTJets_DiLept_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
     labels.remove('Autumn18.TTJets_TuneCP5_13TeV-madgraphMLM-pythia8')
-    ds = [combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))) for l in labels]
+    ds = [H.H.combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))) for l in labels]
     xs = crosssections.labels_to_xs(labels)
     if split:
         # Return splitted by QCD, TTJets, WJets, ZJets, mz
@@ -201,7 +209,7 @@ def make_histograms(rootfile, postbdt_dir):
 
     # Make combined bkg dict, only for calculating the BDT thresholds at various
     # bkg rejection rates
-    bkg_weighted = combine_ds_with_weights(combined_bkg, combined_bkg_n137)
+    bkg_weighted = H.combine_ds_with_weights(combined_bkg, combined_bkg_n137)
     quantiles = .1*np.arange(1,10)
     thresholds = np.quantile(bkg_weighted['score'], quantiles)
 
@@ -215,7 +223,7 @@ def make_histograms(rootfile, postbdt_dir):
     # Now make the histograms for various thresholds
     def make_and_write(*args, **kwargs):
         kwargs['mt_binning'] = binning
-        h = make_summed_histogram(*args, **kwargs)
+        h = H.make_summed_histogram(*args, **kwargs)
         print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
         h.Write()
         return h
@@ -230,7 +238,7 @@ def make_histograms(rootfile, postbdt_dir):
             signal_histograms = []
             for label, _, d, norm in zip(*sig, sig_n137):
                 label = re.search(r'mz\d+', label).group()
-                h = make_mt_histogram(label, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
+                h = H.make_mt_histogram(label, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
                 signal_histograms.append(h)
@@ -280,7 +288,7 @@ def make_histograms_Oct05(rootfile):
     """
     BDT version Sep22, mz=250,300,350, all 4 bkgs
     """
-    try_import_ROOT()
+    H.try_import_ROOT()
     import ROOT
     qcd, ttjets, wjets, zjets, signal = get_dicts_from_postbdt_directory('postbdt_npzs_Oct05', split=True)
 
@@ -305,7 +313,7 @@ def make_histograms_Oct05(rootfile):
 
     # Make combined bkg dict, only for calculating the BDT thresholds at various
     # bkg rejection rates
-    bkg_weighted = combine_ds_with_weights(bkg, bkg_n137)
+    bkg_weighted = H.combine_ds_with_weights(bkg, bkg_n137)
     quantiles = .1*np.arange(1,10)
     thresholds = np.quantile(bkg_weighted['score'], quantiles)
 
@@ -319,7 +327,7 @@ def make_histograms_Oct05(rootfile):
     # Now make the histograms for various thresholds
     def make_and_write(*args, **kwargs):
         kwargs['mt_binning'] = binning
-        h = make_summed_histogram(*args, **kwargs)
+        h = H.make_summed_histogram(*args, **kwargs)
         print(f'Writing {h.GetName()} --> {rootfile}')
         h.Write()
         return h
@@ -336,7 +344,7 @@ def make_histograms_Oct05(rootfile):
             make_and_write('zjets', zjets[2], zjets_n137, threshold=threshold)
             make_and_write('bkg', bkg, bkg_n137, threshold=threshold)
             for name, d, norm in zip(signal[0], signal[2], signal_n137):
-                h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
+                h = H.make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}')
                 h.Write()
 
@@ -350,7 +358,7 @@ def make_histograms_Oct05(rootfile):
             # Write the signal histograms
             for name, d, norm in zip(signal[0], signal[2], signal_n137):
                 name = f'SVJ_mZprime{name.replace("mz","")}_mDark10_rinv03_alphapeak'
-                h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
+                h = H.make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}')
                 h.Write()
 
@@ -505,7 +513,7 @@ def get_dicts_from_postbdt_directory(directory, split=False):
     #labels.remove('Autumn18.TTJets_SingleLeptFromTbar_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
     #labels.remove('Autumn18.TTJets_DiLept_genMET-80_TuneCP5_13TeV-madgraphMLM-pythia8')
     #labels.remove('Autumn18.TTJets_TuneCP5_13TeV-madgraphMLM-pythia8')'''
-    ds = [combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))) for l in labels]
+    ds = [H.combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))) for l in labels]
     xs = crosssections.labels_to_xs(labels)
     if split:
         # Return splitted by QCD, TTJets, WJets, ZJets, mz
@@ -569,7 +577,7 @@ def make_histograms(rootfile, postbdt_dir):
 
     # Make combined bkg dict, only for calculating the BDT thresholds at various
     # bkg rejection rates
-    bkg_weighted = combine_ds_with_weights(combined_bkg, combined_bkg_n137)
+    bkg_weighted = H.combine_ds_with_weights(combined_bkg, combined_bkg_n137)
     quantiles = .1*np.arange(1,10)
     thresholds = np.quantile(bkg_weighted['score'], quantiles)
 
@@ -582,7 +590,7 @@ def make_histograms(rootfile, postbdt_dir):
     # Now make the histograms for various thresholds
     def make_and_write(*args, **kwargs):
         kwargs['mt_binning'] = binning
-        h = make_summed_histogram(*args, **kwargs)
+        h = H.make_summed_histogram(*args, **kwargs)
         print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
         h.Write()
         return h
@@ -597,7 +605,7 @@ def make_histograms(rootfile, postbdt_dir):
             signal_histograms = []
             for label, _, d, norm in zip(*sig, sig_n137):
                 label = re.search(r'mz\d+', label).group()
-                h = make_mt_histogram(label, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
+                h = H.make_mt_histogram(label, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
                 signal_histograms.append(h)
@@ -648,7 +656,7 @@ def make_histograms_Oct05(postbdtdir, rootfile):
     """
     BDT version Sep22, mz=250,300,350, all 4 bkgs
     """
-    try_import_ROOT()
+    H.try_import_ROOT()
     import ROOT
     qcd, ttjets, wjets, zjets, signal = get_dicts_from_postbdt_directory(postbdtdir, split=True)
 
@@ -673,7 +681,7 @@ def make_histograms_Oct05(postbdtdir, rootfile):
 
     # Make combined bkg dict, only for calculating the BDT thresholds at various
     # bkg rejection rates
-    bkg_weighted = combine_ds_with_weights(bkg, bkg_n137)
+    bkg_weighted = H.combine_ds_with_weights(bkg, bkg_n137)
     quantiles = .1*np.arange(1,10)
     thresholds = np.quantile(bkg_weighted['score'], quantiles)
 
@@ -686,7 +694,7 @@ def make_histograms_Oct05(postbdtdir, rootfile):
     # Now make the histograms for various thresholds
     def make_and_write(*args, **kwargs):
         kwargs['mt_binning'] = binning
-        h = make_summed_histogram(*args, **kwargs)
+        h = H.make_summed_histogram(*args, **kwargs)
         print(f'Writing {h.GetName()} --> {rootfile}')
         h.Write()
         return h
@@ -703,7 +711,7 @@ def make_histograms_Oct05(postbdtdir, rootfile):
             make_and_write('zjets', zjets[2], zjets_n137, threshold=threshold)
             make_and_write('bkg', bkg, bkg_n137, threshold=threshold)
             for name, d, norm in zip(signal[0], signal[2], signal_n137):
-                h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
+                h = H.make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}')
                 h.Write()
 
@@ -717,7 +725,7 @@ def make_histograms_Oct05(postbdtdir, rootfile):
             # Write the signal histograms
             for name, d, norm in zip(signal[0], signal[2], signal_n137):
                 name = f'SVJ_mZprime{name.replace("mz","")}_mDark10_rinv03_alphapeak'
-                h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
+                h = H.make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm, mt_binning=binning)
                 print(f'Writing {h.GetName()} --> {rootfile}')
                 h.Write()
 
@@ -772,7 +780,7 @@ def preselection_efficiencies_bkg():
     flength = max(len(osp.basename(d)) for d in directories)
     for i, directory in enumerate(directories):
         npzs = glob.glob(osp.join(directory, '*.npz'))
-        d = combine_npzs(npzs)
+        d = H.combine_npzs(npzs)
 
         n_total = d["n_total"]
         n_presel = d["n_presel"]
@@ -788,8 +796,8 @@ def preselection_efficiencies_bkg():
             )
 
 def combine_dirs_with_weights(directories, weights):
-    ds = [combine_npzs(glob.glob(osp.join(directory, '*.npz'))) for directory in directories]
-    return combine_ds_with_weights(ds, weights)
+    ds = [H.combine_npzs(glob.glob(osp.join(directory, '*.npz'))) for directory in directories]
+    return H.combine_ds_with_weights(ds, weights)
 
 def get_combined_qcd_bkg():
     print('Reading individual qcd .npzs')
@@ -804,9 +812,9 @@ def get_combined_qcd_bkg():
             ]
         ]
     print('Creating combined dict for all qcd bins')
-    qcd_ds = [ combine_npzs(npzs) for npzs in qcd_npzs ]
+    qcd_ds = [ H.combine_npzs(npzs) for npzs in qcd_npzs ]
     print('Combining qcd bins with weights')
-    qcd = combine_ds_with_weights(qcd_ds, [136.52, 278.51, 150.96, 26.24, 7.49])
+    qcd = H.combine_ds_with_weights(qcd_ds, [136.52, 278.51, 150.96, 26.24, 7.49])
     return qcd
 
 
@@ -816,7 +824,7 @@ def make_histograms_3masspoints_qcd_ttjets(rootfile):
     """
     With bdt version trained on only mz250 and qcd
     """
-    try_import_ROOT()
+    H.try_import_ROOT()
     import ROOT
 
     qcd_dirs = [
@@ -838,9 +846,9 @@ def make_histograms_3masspoints_qcd_ttjets(rootfile):
     ttjets = combine_dirs_with_weights(ttjets_dirs, ttjets_eff_xs)
     bkg = combine_dirs_with_weights(qcd_dirs+ttjets_dirs, bkg_eff_xs)
 
-    mz250 = combine_npzs(glob.glob('postbdt_npzs_Sep21_3masspoints_qcdttjets/genjetpt375_mz250_mdark10_rinv0.3/*.npz'))
-    mz300 = combine_npzs(glob.glob('postbdt_npzs_Sep21_3masspoints_qcdttjets/genjetpt375_mz300_mdark10_rinv0.3/*.npz'))
-    mz350 = combine_npzs(glob.glob('postbdt_npzs_Sep21_3masspoints_qcdttjets/genjetpt375_mz350_mdark10_rinv0.3/*.npz'))
+    mz250 = H.combine_npzs(glob.glob('postbdt_npzs_Sep21_3masspoints_qcdttjets/genjetpt375_mz250_mdark10_rinv0.3/*.npz'))
+    mz300 = H.combine_npzs(glob.glob('postbdt_npzs_Sep21_3masspoints_qcdttjets/genjetpt375_mz300_mdark10_rinv0.3/*.npz'))
+    mz350 = H.combine_npzs(glob.glob('postbdt_npzs_Sep21_3masspoints_qcdttjets/genjetpt375_mz350_mdark10_rinv0.3/*.npz'))
 
     norm_qcd    = int(qcd_eff_xs.sum() * 137200)
     norm_ttjets = int(ttjets_eff_xs.sum() * 137200)
@@ -870,7 +878,7 @@ def make_histograms_3masspoints_qcd_ttjets(rootfile):
             if threshold is not None and use_threshold_in_name:
                 name += f'_{float(quantiles[thresholds == threshold]):.3f}'
             print(f'Writing {name} --> {rootfile}')
-            h = make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm)
+            h = H.make_mt_histogram(name, d['mt'], d['score'], threshold, normalization=norm)
             h.Write()
 
         dump(qcd, 'qcd_mt', norm=norm_qcd)
@@ -910,7 +918,7 @@ def make_histograms_mz250_qcd():
     """
     With bdt version trained on only mz250 and qcd
     """
-    try_import_ROOT()
+    H.try_import_ROOT()
     import ROOT
 
     rootfile = 'test.root'
@@ -940,7 +948,7 @@ def make_histograms_mz250_qcd():
             """
             if threshold is not None: name += f'_{threshold:.3f}'
             print(f'Writing {name} --> {rootfile}')
-            h = make_mt_histogram(name, d['mt'], d['score'], threshold)
+            h = H.make_mt_histogram(name, d['mt'], d['score'], threshold)
             h.Write()
 
         dump(qcd, 'qcd_mt')

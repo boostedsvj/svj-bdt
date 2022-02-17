@@ -7,7 +7,7 @@ import seutils
 import uptools
 uptools.logger.setLevel(logging.WARNING)
 
-from dataset import preselection, get_subl, calculate_mt_rt, CutFlowColumn
+from .dataset import preselection, get_subl, calculate_mt_rt, CutFlowColumn
 
 
 def get_scores(rootfile, model):
