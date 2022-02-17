@@ -555,8 +555,8 @@ def print_statistics(postbdtdir):
 
 
 @cli.command()
-@click.option('-o', '--rootfile', default='output_Nov15.root')
-@click.option('-d', '--postbdt_dir', default='postbdt_npzs_Nov9_5masspoints_qcdttjetswjetszjets')
+@click.option('-o', '--rootfile', default='test.root')
+@click.argument('postbdt_dir', default='postbdt_npzs_Nov9_5masspoints_qcdttjetswjetszjets')
 def make_histograms(rootfile, postbdt_dir):
     *bkgs, sig = get_dicts_from_postbdt_directory(postbdt_dir, split=True)
     def calc_n137(xss, ds):
