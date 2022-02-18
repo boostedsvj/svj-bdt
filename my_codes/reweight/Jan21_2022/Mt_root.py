@@ -2,7 +2,8 @@ import glob
 import numpy as np
 import xgboost as xgb
 import seutils
-from combine_hists import *
+
+from bdtcode.histogramming import *
 from scripts import combine_dirs_with_weights
 
 try:
@@ -265,3 +266,6 @@ def make_histograms_3masspoints_qcd_ttjets(rootfile):
 
     finally:
         f.Close() 
+
+if __name__ == '__main__':
+    cli()

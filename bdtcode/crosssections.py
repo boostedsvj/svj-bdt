@@ -1,5 +1,9 @@
 import numpy as np
 
+MT_BINNING = [160.+8.*i for i in range(44)]
+# MT_BINNING = [8.*i for i in range(130)]
+
+
 ttjets_xs = {
     'TTJets_SingleLeptFromT'              : 831.76 * 0.219,
     'TTJets_SingleLeptFromTbar'           : 831.76 * 0.219,
@@ -40,12 +44,7 @@ zjets_xs = {
     }
 
 d_mz_xs = np.load('crosssections_Oct12.npz')
-raw_mz_xs = {f'mz{mz:.0f}' : xs for mz, xs in zip(d_mz_xs['mz'], d_mz_xs['xs'])}
-
-# FIXME: Apply the right genjetpt375 efficiencies per mass point
-# Now applying the mz250 efficiencies on all! This is a very bad approximation!
-# Need to recalculate!
-mz_xs = { k : 0.00191*0.233*v for k, v in raw_mz_xs.items() }
+mz_xs = {f'mz{mz:.0f}' : xs for mz, xs in zip(d_mz_xs['mz'], d_mz_xs['xs'])}
 
 from functools import reduce
 def merge(d1, d2):
@@ -63,3 +62,8 @@ def label_to_xs(label):
 
 def labels_to_xs(labels):
     return np.fromiter((label_to_xs(l) for l in labels), dtype=np.float32)
+
+def genjetpt_eff(mz):
+    # For parameters, see:
+    # https://github.com/boostedsvj/matching_efficiencies/blob/main/fit.ipynb
+    return 3.66e-8*mz**2 + -6.76e-7*mz + 1.12e-5

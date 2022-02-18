@@ -142,20 +142,8 @@ def preselection(event, cut_flow=None):
     cut_flow.plus_one('trigger')
 
     for ecf in [
-        b'JetsAK15_ecfC2b1',
-        # b'JetsAK15_ecfC2b2',
-        # b'JetsAK15_ecfC3b1',
-        # b'JetsAK15_ecfC3b2',
-        b'JetsAK15_ecfD2b1',
-        # b'JetsAK15_ecfD2b2',
-        b'JetsAK15_ecfM2b1',
-        # b'JetsAK15_ecfM2b2',
-        # b'JetsAK15_ecfM3b1',
-        # b'JetsAK15_ecfM3b2',
-        # b'JetsAK15_ecfN2b1',
-        b'JetsAK15_ecfN2b2',
-        # b'JetsAK15_ecfN3b1',
-        # b'JetsAK15_ecfN3b2'
+        b'JetsAK15_ecfC2b1', b'JetsAK15_ecfD2b1',
+        b'JetsAK15_ecfM2b1', b'JetsAK15_ecfN2b2',
         ]:
         try:
             if event[ecf][1] < 0.:
@@ -164,9 +152,9 @@ def preselection(event, cut_flow=None):
             return False
     cut_flow.plus_one('ecf>0')
 
-    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.08:
+    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.1:
         return False
-    cut_flow.plus_one('rtx>1.08')
+    cut_flow.plus_one('rtx>1.1')
 
     if event[b'Muons'] > 0 or event[b'Electrons'] > 0:
         return False
@@ -220,9 +208,7 @@ def get_subl(event):
     subl.metdphi = calc_dphi(subl.phi, event[b'METPhi'])
     metdphi = calc_dphi(subl.phi, event[b'METPhi'])
     subl.rt = np.sqrt(1+ event[b'MET']/subl.pt)
-    #subl.mt = calculate_mt(subl, event[b'MET'], subl.metphi)
     subl.mt = calculate_mt(subl, event[b'MET'], metdphi)
-    #return subl, met
     return subl
 
 

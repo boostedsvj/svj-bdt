@@ -5,9 +5,11 @@ import numpy as np
 import xgboost as xgb
 import seutils
 import uptools
+import warnings
 uptools.logger.setLevel(logging.WARNING)
 
-from .dataset import preselection, get_subl, calculate_mt_rt, CutFlowColumn
+from .dataset import preselection, get_subl, calculate_mt_rt, CutFlowColumn, is_array
+from .utils import try_import_ROOT
 
 
 def get_scores(rootfile, model):
@@ -73,14 +75,19 @@ def combine_ds(ds):
     for d in ds:
         for key, value in d.items():
             if not key in combined: combined[key] = []
-            if value.shape and len(value) == 0: continue
+            # If this value has a length (i.e. is array-like)
+            # but it's length is zero, skip it
+            try:
+                if len(value) == 0: continue
+            except TypeError:
+                pass
             combined[key].append(value)
     # Make proper np arrays
     for key, values in combined.items():
-        if len(values[0].shape) == 0:
-            combined[key] = np.array(values).sum()
-        else:
+        if is_array(values[0]):
             combined[key] = np.concatenate(values)
+        else:
+            combined[key] = np.array(values).sum()
     return combined
 
 
@@ -91,44 +98,13 @@ def combine_npzs(npzs):
     return combine_ds((np.load(npz) for npz in npzs))
 
 
-def try_import_ROOT():
-    try:
-        import ROOT
-    except ImportError:
-        print(
-            'ROOT is required to be installed for this operation. Run:\n'
-            'conda install -c conda-forge root'
-            )
-        raise
-
-
-def combine_ds_with_weights(ds, weights):
+def normalize(h, normalization):
     """
-    Combines several dicts into a single dict, with weights
+    Takes a ROOT TH1 histogram and sets the integral to `normalization`.
+    Includes the under- and overflow bins!
     """
-    if len(ds) != len(weights): raise ValueError('len ds != len weights')
-    counts = [ len(d['score']) for d in ds ]
-    print('Counts:')
-    for i, (count, opt_count) in enumerate(zip(counts, optimal_counts)):
-        print(f'{i} : {count:8} available, using {opt_count}')
-
-    # Combine from an iterator with the dicts cut to size
-    return combine_ds(( shrink_dict(d, opt_count) for d, opt_count in zip(ds, optimal_counts) ))
-
-
-def shrink_dict(d, n):
-    """
-    Slices all values that are arrays in d up to :n.
-    Integer counts are reduced by the fraction n/len(d)
-    """
-    len_d = len(d['score']) # Just pick an array key that is always there
-    frac = min(float(n/len_d), 1.)
-    return { k : v[:n] if v.shape else frac*v for k, v in d.items()}
-
-
-# Defauly mt binning
-MT_BINNING = [160.+8.*i for i in range(44)]
-# MT_BINNING = [8.*i for i in range(130)]
+    integral = h.Integral(0, h.GetNbinsX()+1)
+    h.Scale(normalization/integral if integral != 0. else 0.)
 
 
 def make_mt_histogram(name, mt, score=None, threshold=None, mt_binning=None, normalization=None):
@@ -153,6 +129,19 @@ def make_mt_histogram(name, mt, score=None, threshold=None, mt_binning=None, nor
     if normalization is not None:
         integral = h.Integral(0, h.GetNbinsX()+1)
         h.Scale(normalization*efficiency / integral if integral != 0. else 0.)
+    return h
+
+
+def sum_th1s(name, th1s):
+    """
+    Sums up ROOT TH1s.
+    Use reduce and add to create really a new histogram, instead
+    of overwriting any existing histogram.
+    """
+    from operator import add
+    from functools import reduce
+    h = reduce(add, th1s)
+    h.SetNameTitle(name, name)
     return h
 
 
@@ -250,81 +239,30 @@ def dump_score_npzs_mp(model, rootfiles, outfile, n_threads=12, keep_tmp_files=F
         print(f'Removing {tmpdir}')
         shutil.rmtree(tmpdir)
 
-# ________________________________________________________
-# Some tests
 
-def test_get_scores():
-    model = xgb.XGBClassifier()
-    model.load_model('/Users/klijnsma/work/svj/bdt/svjbdt_Aug02.json')
-    rootfile = 'TREEMAKER_genjetpt375_Jul21_mz250_mdark10_rinv0.337.root'
-    d = get_scores(rootfile, model)
-    import pprint
-    pprint.pprint(d, sort_dicts=False)
+def combine_ds_with_weights(ds, weights):
+    """
+    Combines several dicts into a single dict, with weights.
 
-def test_dump_score_npz_worker():
-    model = xgb.XGBClassifier()
-    model.load_model('/Users/klijnsma/work/svj/bdt/svjbdt_Aug02.json')
-    rootfile = 'TREEMAKER_genjetpt375_Jul21_mz250_mdark10_rinv0.337.root'
-    dump_score_npz_worker((rootfile, model, 'out.npz'))
+    WARNING: THIS THROWS AWAY PERFECTLY GOOD EVENTS!
 
-def test_dump_score_npzs_mp():
-    model = xgb.XGBClassifier()
-    model.load_model('/Users/klijnsma/work/svj/bdt/svjbdt_Aug02.json')
-    rootfiles = seutils.ls_wildcard(
-        'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker'
-        '/genjetpt375_mz250_mdark10_rinv0.3/*.root'
-        )
-    outfile = 'mz250_mdark10_rinv0p3.npz'
-    # dump_score_npz_worker((rootfiles[1], model, 'out.npz'))
-    dump_score_npzs_mp(model, rootfiles, outfile)
+    This function should be used only for studying things, not actual
+    production of histograms for fitting purposes.
+    """
+    if len(ds) != len(weights): raise ValueError('len ds != len weights')
+    counts = [ len(d['score']) for d in ds ]
+    optimal_counts = optimal_count(counts, weights)
+    print('Counts:')
+    for i, (count, opt_count) in enumerate(zip(counts, optimal_counts)):
+        print(f'{i} : {count:8} available, using {opt_count}')
+    # Combine from an iterator with the dicts cut to size
+    return combine_ds(( shrink_dict(d, opt_count) for d, opt_count in zip(ds, optimal_counts) ))
 
-def test_optimal_count():
-    counts = np.array([ 100, 200, 150 ])
-    np.testing.assert_almost_equal(
-        optimal_count(counts, [1./3, 1./3, 1./3]),
-        np.array([ 100, 100, 100 ])
-        )
-    np.testing.assert_almost_equal(
-        optimal_count(counts, [.2, .4, .4]),
-        np.array([ 75, 150, 150 ])
-        )
-    np.testing.assert_almost_equal(
-        optimal_count(counts, counts/counts.sum()),
-        counts
-        )
-    np.testing.assert_almost_equal(
-        optimal_count(
-            [18307, 104484, 366352, 242363, 163624],
-            [136.52, 278.51, 150.96, 26.24, 7.49]
-            ),
-        [18307, 37347, 20243, 3518, 1004]
-        )
-    print('Succeeded')
-
-
-def test_sum_hists():
-    import ROOT
-    h1 = ROOT.TH1F('h1', 'h1', 10, array('f', np.linspace(200., 400., 11)))
-    h2 = ROOT.TH1F('h2', 'h2', 10, array('f', np.linspace(200., 400., 11)))
-    h1.Fill(250.)
-    h1.Fill(300.)
-    h2.Fill(250.)
-    h2.Fill(350.)
-    def printh(h):
-        contents = []
-        for i in range(h.GetNbinsX()):
-            contents.append(h.GetBinContent(i+1))
-        print(np.array(contents))
-    printh(h1)
-    printh(h2)
-    printh(h1+h2)
-    from operator import add
-    from functools import reduce
-    h_sum = reduce(add, [h1, h2])
-    printh(h_sum)
-    printh(h1)
-    printh(h2)
-
-if __name__ == '__main__':
-    # test_get_scores()
-    combine_npzs('/mnt/hadoop/cms/store/user/snabili/BKG/BDT/genjetpt375_mz250_mdark10_rinv0.3/')
+def shrink_dict(d, n):
+    """
+    Slices all values that are arrays in d up to :n.
+    Integer counts are reduced by the fraction n/len(d)
+    """
+    len_d = len(d['score']) # Just pick an array key that is always there
+    frac = min(float(n/len_d), 1.)
+    return { k : v[:n] if v.shape else frac*v for k, v in d.items()}
