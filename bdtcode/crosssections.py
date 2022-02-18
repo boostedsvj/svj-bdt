@@ -1,4 +1,5 @@
 import numpy as np
+import os.path as osp
 
 MT_BINNING = [160.+8.*i for i in range(44)]
 # MT_BINNING = [8.*i for i in range(130)]
@@ -43,7 +44,7 @@ zjets_xs = {
     'ZJetsToNuNu_HT-2500ToInf'  : 0.005263,
     }
 
-d_mz_xs = np.load('crosssections_Oct12.npz')
+d_mz_xs = np.load(osp.join(osp.dirname(osp.abspath(__file__)) , 'crosssections_Oct12.npz'))
 mz_xs = {f'mz{mz:.0f}' : xs for mz, xs in zip(d_mz_xs['mz'], d_mz_xs['xs'])}
 
 from functools import reduce
