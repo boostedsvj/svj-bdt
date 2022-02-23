@@ -64,6 +64,10 @@ class Sample:
 
     @property
     def mz(self):
+        """
+        Returns the Z' mass of the sample, based on the label.
+        If this sample is background, None is returned.
+        """
         if not hasattr(self, '_mz'): 
             match = re.search(r'mz(\d+)', self.label)
             self._mz = int(match.group(1)) if match else None
@@ -142,19 +146,53 @@ def get_samples_from_postbdt_directory(directory) -> List[List[Sample]]:
     samples = split_by_category(samples, labels)
     return samples
 
+def clean_label(label):
+    """Strips off some verbosity from the label for printing purposes"""
+    for p in [
+        'Autumn18.', '_TuneCP5', '_13TeV', '_pythia8', '-pythia8',
+        '-madgraphMLM', '-madgraph', 'genjetpt375_', '_mdark10_rinv0.3',
+        'ToLNu', 'ToNuNu',
+        ]:
+        label = label.replace(p, '')
+    return label
+
+@cli.command()
+@click.argument('postbdtdir')
+def print_quantiles(postbdtdir):
+    *bkgs, sigs = get_samples_from_postbdt_directory(postbdtdir)
+
+    bdt_scores = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    bkg_eff = []
+    sig_eff = {}
+
+    for min_score in bdt_scores:
+
+        # For the backgrounds, just make a cross-section weighted average per sample
+        bkg_eff_for_this_score = 0.
+        total_bkg_xs = 0.
+        
+        for bkg in flatten(*bkgs):
+            bkg_eff_for_this_score += bkg.crosssection * bkg.bdt_efficiency(min_score)
+            total_bkg_xs += bkg.crosssection
+        bkg_eff_for_this_score /= total_bkg_xs
+        bkg_eff.append(f'{100.*bkg_eff_for_this_score:.2f}%')
+
+        # For the signal we should not merge different mass points
+        # Let's just make a dict, sig_eff[mz_mass] = [ list of bdt efficiencies per bdt value ]
+        for sig in sigs:
+            if not sig.mz in sig_eff: sig_eff[sig.mz] = []
+            sig_eff[sig.mz].append(f'{100.*sig.bdt_efficiency(min_score):.2f}%')
+
+    # Print out - make a table
+    header = ['bdt_cut', 'bkg_eff'] + [f'mz{s.mz:.0f}_eff' for s in sigs]
+    table = [ bdt_scores, bkg_eff ] + [sig_eff[s.mz] for s in sigs]
+    # Insert the header title at the first place of every row
+    [ table[i].insert(0, head) for i, head in enumerate(header) ]
+    print_table(table, transpose=True)
 
 @cli.command()
 @click.argument('postbdtdir')
 def print_statistics(postbdtdir):
-    def clean_label(label):
-        """Strips off some verbosity from the label for printing purposes"""
-        for p in [
-            'Autumn18.', '_TuneCP5', '_13TeV', '_pythia8', '-pythia8',
-            '-madgraphMLM', '-madgraph', 'genjetpt375_', '_mdark10_rinv0.3',
-            'ToLNu', 'ToNuNu',
-            ]:
-            label = label.replace(p, '')
-        return label
     cutflow_keys = [
         'total',
         '>=2jets',
@@ -199,10 +237,10 @@ def make_histograms(rootfile, postbdt_dir):
     *bkgs, sigs = get_samples_from_postbdt_directory(postbdt_dir)
 
     # binning = MT_BINNING
-    left = 210.
+    left = 220.
     #right = 500.
     right = 800.
-    bin_width = 8.
+    bin_width = 16.
     binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
 
     def get_group_name(label):
@@ -233,6 +271,11 @@ def make_histograms(rootfile, postbdt_dir):
 
             # Finally write the combined bkg histogram
             h = H.sum_th1s('Bkg', hs_bkg)
+            print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
+            h.Write()
+
+            # Also write data_obs, which is the exact same thing but with a different name
+            h.SetNameTitle('data_obs', 'data_obs')
             print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
             h.Write()
 

@@ -47,11 +47,23 @@ def format_table(table, col_sep=' ', row_sep='\n', transpose=False):
         except ValueError:
             return str(s)
     table = [ [format(c) for c in row ] for row in table ]
-    if transpose: table = list(zip(*table))
+    if transpose: table = _transpose(table)
     col_widths = [ max(map(len, column)) for column in zip(*table) ]
     return row_sep.join(
         col_sep.join(f'{col:{w}s}' for col, w in zip(row, col_widths)) for row in table
         )
+
+def transpose(table):
+    """
+    Turns rows into columns. Does not check if all rows have the same length!
+    Example: [[1,2,3], [4,5,6]] --> [[1,4], [2,5], [3,6]]
+    """
+    # return list(zip(*table))
+    return [list(x) for x in zip(*table)]
+
+def _transpose(*args, **kwargs):
+    """Same as `transpose` above"""
+    return transpose(*args, **kwargs)
 
 def print_table(*args, **kwargs):
     print(format_table(*args, **kwargs))
