@@ -6,6 +6,8 @@ import uptools, seutils
 from contextlib import contextmanager
 import argparse
 
+from .utils import is_array
+
 
 class Bunch:
     def __init__(self, **kwargs):
@@ -59,17 +61,6 @@ class FourVectorArray:
     @property
     def pz(self):
         return np.sinh(self.eta) * self.pt
-
-
-def is_array(a):
-    """
-    Checks if a thing is an array or maybe a number
-    """
-    try:
-        shape = a.shape
-        return len(shape) >= 1
-    except AttributeError:
-        return False
 
 
 def calc_dphi(phi1, phi2):

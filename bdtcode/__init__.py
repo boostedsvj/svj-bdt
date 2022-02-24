@@ -5,3 +5,4 @@ from . import crosssections
 from . import dataset
 from . import histogramming
 from . import utils
+from . import sample

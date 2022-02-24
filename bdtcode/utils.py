@@ -1,8 +1,9 @@
-import xgboost as xgb
+import numpy as np
 import itertools
 from contextlib import contextmanager
 
 def get_model(modeljson):
+    import xgboost as xgb
     model = xgb.XGBClassifier()
     model.load_model(modeljson)
     return model
@@ -26,6 +27,16 @@ def open_root(*args, **kwargs):
         yield f
     finally:
         f.Close()
+
+def is_array(a):
+    """
+    Checks if a thing is an array or maybe a number
+    """
+    try:
+        shape = a.shape
+        return len(shape) >= 1
+    except AttributeError:
+        return False
 
 def flatten(*args):
     return list(itertools.chain.from_iterable(args))
@@ -67,3 +78,6 @@ def _transpose(*args, **kwargs):
 
 def print_table(*args, **kwargs):
     print(format_table(*args, **kwargs))
+
+def safe_divide(a, b):
+    return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
