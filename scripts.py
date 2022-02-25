@@ -1,13 +1,8 @@
 import glob, math, re, sys, os, os.path as osp
 import uuid
-from webbrowser import get
-import ROOT
 import numpy as np
 import seutils
-import itertools
 from array import array
-from contextlib import contextmanager
-import xgboost as xgb
 from typing import List
 
 try:
@@ -18,8 +13,6 @@ except ImportError:
 
 # Add this directory to the python path, so the imports below work
 sys.path.append(osp.dirname(osp.abspath(__file__)))
-import bdtcode
-
 import bdtcode
 import bdtcode.histogramming as H
 import bdtcode.crosssections as crosssections
@@ -46,115 +39,92 @@ def split_by_category(things, labels, pats=['QCD', 'TTJets', 'WJets', 'ZJets', '
         returnable[index_for_label(label)].append(thing)
     return returnable
 
-
-class Sample:
-    """
-    Container for a sample.
-
-    A sample can be a specific set of background events, e.g. 
-    TTJets_HT-600to800, QCD_Pt_800to1000_TuneCP5, mz250, etc.
-
-    The container stores a simply dictionary in self.d and
-    has a few convenience methods to interact with 
-    """
-
-    def __init__(self, label, d):
-        self.d = d
-        self.label = label
-
-    @property
-    def mz(self):
-        if not hasattr(self, '_mz'): 
-            match = re.search(r'mz(\d+)', self.label)
-            self._mz = int(match.group(1)) if match else None
-        return self._mz
- 
-    @property
-    def is_sig(self):
-        return self.mz is not None
-
-    @property
-    def is_bkg(self):
-        return self.mz is None
-
-    @property
-    def genjetpt_efficiency(self):
-        if self.is_bkg: return 1.
-        return bdtcode.crosssections.genjetpt_eff(self.mz)
-
-    @property
-    def crosssection(self):
-        """
-        Returns inclusive cross section based on the label
-        """
-        return bdtcode.crosssections.label_to_xs(self.label)
-
-    def mt(self, min_score=None):
-        """Returns mt, with the option of cutting on the score here"""
-        return self.d['mt'] if min_score is None else self.d['mt'][self.score > min_score]
-
-    @property
-    def score(self):
-        return self.d['score']
-
-    def bdt_efficiency(self, min_score=None):
-        return 1. if min_score is None else (self.score > min_score).sum() / len(self)
-
-    @property
-    def preselection_efficiency(self):
-        return self.d['preselection']/self.d['total']
-
-    def nevents_after_preselection(self, lumi=137.2*1e3):
-        return self.crosssection * lumi * self.preselection_efficiency * self.genjetpt_efficiency
-
-    def nevents_after_bdt(self, min_score=None, lumi=137.2*1e3):
-        return self.nevents_after_preselection(lumi) * self.bdt_efficiency(min_score)
-
-    def __len__(self):
-        """Returns number of entries in the underlying dict"""
-        return len(self.score)
-
-
-def sample_to_mt_histogram(sample: Sample, min_score=None, mt_binning=None, name=None):
-    try_import_ROOT()
-    import ROOT
-    mt = sample.mt(min_score)
-    binning = array('f', crosssections.MT_BINNING if mt_binning is None else mt_binning)
-    if name is None: name = str(uuid.uuid4())
-    h = ROOT.TH1F(name, name, len(binning)-1, binning)
-    ROOT.SetOwnership(h, False)
-    [ h.Fill(x) for x in mt ]
-    H.normalize(h, sample.nevents_after_bdt(min_score))
-    return h
-
-
-def get_samples_from_postbdt_directory(directory) -> List[List[Sample]]:
+def get_samples_from_postbdt_directory(directory) -> List[List[bdtcode.sample.Sample]]:
     print(f'Building samples from {directory}')
     # Gather all the available labels
     labels = list(set(osp.basename(s) for s in glob.iglob(osp.join(directory, '*/*'))))
     labels.sort()
     # Actually combine all npz files into one dict and create the overarching Sample class
     samples = [
-        Sample(l, H.combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))))
+        bdtcode.sample.Sample(l, H.combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))))
         for l in labels
         ]
     # Split the samples by category
     samples = split_by_category(samples, labels)
     return samples
 
+def clean_label(label):
+    """Strips off some verbosity from the label for printing purposes"""
+    for p in [
+        'Autumn18.', '_TuneCP5', '_13TeV', '_pythia8', '-pythia8',
+        '-madgraphMLM', '-madgraph', 'genjetpt375_', '_mdark10_rinv0.3',
+        'ToLNu', 'ToNuNu',
+        ]:
+        label = label.replace(p, '')
+    return label
+
+
+def xsweighted_bdt_efficiency(samples, min_score):
+    """
+    Takes a list of Samples and calculates the cross section weighted effiency of
+    a particular bdt score.
+    """
+    total_xs = sum(s.crosssection for s in samples)
+    return sum(s.bdt_efficiency(min_score)*s.crosssection for s in samples) / total_xs
+
+def bdt_efficiency_table(bkgs, sigs, bdt_scores=None):
+    if bdt_scores is None: bdt_scores = [.1*i for i in range(11)]
+    # For the backgrounds, just make a cross-section weighted average per sample
+    bkg_eff = [ xsweighted_bdt_efficiency(bkgs, min_score) for min_score in bdt_scores ]
+    # For the signal we should not merge different mass points
+    # Let's just make a dict, sig_eff[mz_mass] = [ list of bdt efficiencies per bdt value ]
+    sig_eff = { sig.mz : [ sig.bdt_efficiency(min_score) for min_score in bdt_scores ] for sig in sigs }
+    return bdt_scores, bkg_eff, sig_eff
+
+@cli.command()
+@click.argument('postbdtdir')
+def print_quantiles(postbdtdir):
+    *bkgs, sigs = get_samples_from_postbdt_directory(postbdtdir)
+    bkgs = flatten(*bkgs) # Undo the grouping ttjets/qcd/wjets/zjets; just make a flat list
+    bdt_scores, bkg_eff, sig_eff = bdt_efficiency_table(bkgs, sigs)
+    # Print out - make a table
+    def floats_to_strs(list_of_floats):
+        return [f'{100.*number:.2f}%' for number in list_of_floats]
+    mzs = [ s.mz for s in sigs ]
+    header = ['bdt_cut', 'bkg_eff'] + [f'mz{mz:.0f}_eff' for mz in mzs]
+    table = [ bdt_scores, floats_to_strs(bkg_eff) ] + [floats_to_strs(sig_eff[mz]) for mz in mzs]
+    # Insert the header title at the first place of every row
+    [ table[i].insert(0, head) for i, head in enumerate(header) ]
+    print_table(table, transpose=True)
+
+@cli.command()
+@click.argument('postbdtdir')
+def plot_sb(postbdtdir):
+    import matplotlib.pyplot as plt
+    *bkgs, sigs = get_samples_from_postbdt_directory(postbdtdir)
+    bkgs = flatten(*bkgs) # Undo the grouping ttjets/qcd/wjets/zjets; just make a flat list
+
+    bdt_scores = np.linspace(0., 1., 11)
+
+    B = np.array([b.nevents_after_bdt(bdt_scores) for b in bkgs]).sum(axis=0)
+    sqB = np.sqrt(B)
+    S_per_mz = { s.mz : s.nevents_after_bdt(bdt_scores) for s in sigs }
+
+    fig = plt.Figure()
+    ax = fig.gca()
+
+    for s in sigs:
+        S = S_per_mz[s.mz]
+        ax.plot(bdt_scores, S/sqB, label=f'$m_{{Z\prime}}={s.mz:.0f}$')
+
+
+
+
+
 
 @cli.command()
 @click.argument('postbdtdir')
 def print_statistics(postbdtdir):
-    def clean_label(label):
-        """Strips off some verbosity from the label for printing purposes"""
-        for p in [
-            'Autumn18.', '_TuneCP5', '_13TeV', '_pythia8', '-pythia8',
-            '-madgraphMLM', '-madgraph', 'genjetpt375_', '_mdark10_rinv0.3',
-            'ToLNu', 'ToNuNu',
-            ]:
-            label = label.replace(p, '')
-        return label
     cutflow_keys = [
         'total',
         '>=2jets',
@@ -168,7 +138,7 @@ def print_statistics(postbdtdir):
         ]
     header_column = ['label'] + cutflow_keys + ['xs', 'genpt>375', 'n137_presel']
 
-    def print_cutflow(samples: List[Sample]):
+    def print_cutflow(samples: List[bdtcode.sample.Sample]):
         table = [header_column]
         for sample in samples:
             column = [clean_label(sample.label)] # , f'{xs:.1f}']
@@ -199,10 +169,10 @@ def make_histograms(rootfile, postbdt_dir):
     *bkgs, sigs = get_samples_from_postbdt_directory(postbdt_dir)
 
     # binning = MT_BINNING
-    left = 210.
+    left = 220.
     #right = 500.
-    right = 800.
-    bin_width = 8.
+    right = 580.
+    bin_width = 16.
     binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
 
     def get_group_name(label):
@@ -212,12 +182,14 @@ def make_histograms(rootfile, postbdt_dir):
         raise Exception(f'No group name for {label}')
 
     with open_root(rootfile, 'RECREATE') as f:
-        for min_score in [None, 0.1, 0.2, 0.3, 0.4]:
+        for min_score in [None, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
             tdir = f.mkdir(f'bsvj_{0 if min_score is None else min_score:.1f}'.replace('.','p'))
             tdir.cd()
             # Loop over the mz' mass points
             for sig in sigs:
-                h = sample_to_mt_histogram(sig, min_score=min_score, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak')
+                h = bdtcode.sample.sample_to_mt_histogram(
+                    sig, min_score=min_score, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak'
+                    )
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
 
@@ -233,6 +205,11 @@ def make_histograms(rootfile, postbdt_dir):
 
             # Finally write the combined bkg histogram
             h = H.sum_th1s('Bkg', hs_bkg)
+            print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
+            h.Write()
+
+            # Also write data_obs, which is the exact same thing but with a different name
+            h.SetNameTitle('data_obs', 'data_obs')
             print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
             h.Write()
 
