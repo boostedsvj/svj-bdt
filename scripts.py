@@ -191,16 +191,16 @@ def make_histograms(rootfile, postbdt_dir):
                 #h = bdtcode.sample.sample_to_mt_histogram(
                 #    sig, min_score=min_score, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak'
                 #    )
-                h = bdtcode.sample.sample_to_mt_histogram(sig, min_score=min_score, pt_min=550, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak')
+                h = bdtcode.sample.sample_to_mt_histogram(sig, min_score=min_score, pt_min=250, rt_min=1.25, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak')
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
 
             hs_bkg = []
             for bkg_group in bkgs:
                 h = H.sum_th1s(
-                    get_group_name(bkg_group[0].label),
-                    (bdtcode.sample.sample_to_mt_histogram(s, min_score=min_score, pt_min = 550, mt_binning=binning) for s in bkg_group)
-                    )
+                  get_group_name(bkg_group[0].label),
+                  (bdtcode.sample.sample_to_mt_histogram(s, min_score=min_score, pt_min = 250, rt_min=1.25, mt_binning=binning) for s in bkg_group)
+                  )
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
                 hs_bkg.append(h)

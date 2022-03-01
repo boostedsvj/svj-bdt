@@ -57,11 +57,15 @@ class Sample:
     def pt(self):
         return self.d['pt']
 
+    @property
+    def rt(self):
+        return self.d['rt']
+
     #def mt(self, min_score=None):
-    def mt(self, min_score=None, pt_min=None):
+    def mt(self, min_score=None, pt_min=None, rt_min=None):
         """Returns mt, with the option of cutting on the score here"""
         #return self.d['mt'] if min_score is None else self.d['mt'][self.score > min_score]
-        return self.d['mt'][self.pt > pt_min] if min_score is None else self.d['mt'][(self.score > min_score) & (self.pt > pt_min)]
+        return self.d['mt'][(self.pt > pt_min) & (self.rt > rt_min)] if min_score is None else self.d['mt'][(self.score > min_score) & (self.pt > pt_min) & (self.rt > rt_min)]
 
     @property
     def score(self):
@@ -92,11 +96,11 @@ class Sample:
 
 
 #def sample_to_mt_histogram(sample: Sample, min_score=None, mt_binning=None, name=None):
-def sample_to_mt_histogram(sample: Sample, pt_min=None, min_score=None, mt_binning=None, name=None):
+def sample_to_mt_histogram(sample: Sample, min_score=None, pt_min=None, rt_min=None, mt_binning=None, name=None):
     try_import_ROOT()
     import ROOT
     #mt = sample.mt(min_score)
-    mt = sample.mt(min_score, pt_min)
+    mt = sample.mt(min_score, pt_min, rt_min)
     binning = array('f', crosssections.MT_BINNING if mt_binning is None else mt_binning)
     if name is None: name = str(uuid.uuid4())
     h = ROOT.TH1F(name, name, len(binning)-1, binning)
