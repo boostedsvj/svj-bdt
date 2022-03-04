@@ -224,22 +224,24 @@ def make_histograms(rootfile, postbdt_dir):
 
     with open_root(rootfile, 'RECREATE') as f:
         for min_score in [None, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        #for min_score in [None]:
             tdir = f.mkdir(f'bsvj_{0 if min_score is None else min_score:.1f}'.replace('.','p'))
             tdir.cd()
             # Loop over the mz' mass points
             for sig in sigs:
-                h = bdtcode.sample.sample_to_mt_histogram(
-                    sig, min_score=min_score, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak'
-                    )
+                #h = bdtcode.sample.sample_to_mt_histogram(
+                #    sig, min_score=min_score, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak'
+                #    )
+                h = bdtcode.sample.sample_to_mt_histogram(sig, min_score=min_score, pt_min=250, rt_min=1.25, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak')
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
 
             hs_bkg = []
             for bkg_group in bkgs:
                 h = H.sum_th1s(
-                    get_group_name(bkg_group[0].label),
-                    (sample_to_mt_histogram(s, min_score=min_score, mt_binning=binning) for s in bkg_group)
-                    )
+                  get_group_name(bkg_group[0].label),
+                  (bdtcode.sample.sample_to_mt_histogram(s, min_score=min_score, pt_min = 250, rt_min=1.25, mt_binning=binning) for s in bkg_group)
+                  )
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
                 hs_bkg.append(h)
