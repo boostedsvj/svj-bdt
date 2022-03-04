@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import glob, math, re, sys, os, os.path as osp
 import uuid
 import numpy as np
@@ -124,7 +125,8 @@ def plot_sb(postbdtdir):
 
 @cli.command()
 @click.argument('postbdtdir')
-def print_statistics(postbdtdir):
+@click.option('--group-summary', is_flag=True)
+def print_statistics(postbdtdir, group_summary):
     cutflow_keys = [
         'total',
         '>=2jets',
@@ -138,18 +140,56 @@ def print_statistics(postbdtdir):
         ]
     header_column = ['label'] + cutflow_keys + ['xs', 'genpt>375', 'n137_presel']
 
-    def print_cutflow(samples: List[bdtcode.sample.Sample]):
-        table = [header_column]
-        for sample in samples:
-            column = [clean_label(sample.label)] # , f'{xs:.1f}']
-            column.extend(f"{100*sample.d[key]/sample.d['total']:.2f}%" for key in cutflow_keys)
-            column.append(f'{sample.crosssection:.1f}')
-            column.append(f'{100.*sample.genjetpt_efficiency:.3f}%')
-            column.append(f'{sample.nevents_after_preselection():.0f}')
-            table.append(column)
-        print_table(table, transpose=True)
+    def format_group_column(samples):
+        group_name = get_group_name(samples[0].label)
+        group_xs = sum(s.crosssection for s in samples)
+        def xs_weighted_sum(things_to_sum):
+            return sum((s.crosssection/group_xs) * thing for s, thing in zip(samples, things_to_sum))
+        column = [group_name]
+        combined_cutflow = [
+            xs_weighted_sum(s.d[key]/s.d['total'] for s in samples) for key in cutflow_keys
+            ]
+        column.extend(f"{100*eff:.2f}%" for eff in combined_cutflow)
+        column.append(f'{group_xs:.1f}')
+        group_genjetpteff = xs_weighted_sum(s.genjetpt_efficiency for s in samples)
+        column.append(f'{100.*group_genjetpteff:.3f}%')
+        column.append(f"{sum(s.nevents_after_preselection() for s in samples):.0f}")
+        return column
+
+    def format_single_sample_column(sample):
+        column = [clean_label(sample.label)] # , f'{xs:.1f}']
+        column.extend(f"{100*sample.d[key]/sample.d['total']:.2f}%" for key in cutflow_keys)
+        column.append(f'{sample.crosssection:.1f}')
+        column.append(f'{100.*sample.genjetpt_efficiency:.3f}%')
+        column.append(f'{sample.nevents_after_preselection():.0f}')
+        return column
 
     samples = get_samples_from_postbdt_directory(postbdtdir)
+
+    if group_summary:
+        # Only print the cutflows per group, ignore individual sample level
+        table = [header_column]
+        # Combined background column
+        table.append(format_group_column(flatten(*samples[:-1])))
+        table[-1][0] = 'bkg'
+        for sample_group in samples:
+            if sample_group[0].is_sig:
+                for sample in sample_group:
+                    table.append(format_single_sample_column(sample))
+            else:
+                table.append(format_group_column(sample_group))
+        print_table(table, transpose=True)
+        return
+
+    def print_cutflow(samples: List[bdtcode.sample.Sample]):
+        table = [header_column]
+        # Summary column for the whole group
+        if samples[0].is_bkg: table.append(format_group_column(samples))
+        # Individual samples
+        for sample in samples: 
+            table.append(format_single_sample_column(sample))
+        print_table(table, transpose=True)
+
     for sample_group in samples:
         print_cutflow(sample_group)
         print('')
@@ -161,6 +201,13 @@ def print_statistics(postbdtdir):
         s = sample.nevents_after_preselection()
         print(f'mz={sample.mz} {s=:.0f}, {b=:.0f}, s/sqrt(b)={s/np.sqrt(b):.3f}, s/b={s/b:.3f}')
 
+
+
+def get_group_name(label):
+    for pat in ['qcd', 'ttjets', 'wjets', 'zjets']:
+        if pat in label.lower():
+            return pat
+    raise Exception(f'No group name for {label}')
 
 @cli.command()
 @click.option('-o', '--rootfile', default='test.root')
@@ -174,12 +221,6 @@ def make_histograms(rootfile, postbdt_dir):
     right = 580.
     bin_width = 16.
     binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
-
-    def get_group_name(label):
-        for pat in ['qcd', 'ttjets', 'wjets', 'zjets']:
-            if pat in label.lower():
-                return pat
-        raise Exception(f'No group name for {label}')
 
     with open_root(rootfile, 'RECREATE') as f:
         for min_score in [None, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
@@ -212,6 +253,99 @@ def make_histograms(rootfile, postbdt_dir):
             h.SetNameTitle('data_obs', 'data_obs')
             print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
             h.Write()
+
+
+@cli.command()
+@click.argument('rootfile')
+@click.option('-o', '--plotdir', default='plots_%b%d')
+@click.option('--pdf', is_flag=True)
+def plot_mt_histograms(rootfile, plotdir, pdf):
+    import matplotlib.pyplot as plt
+    set_matplotlib_fontsizes(18, 20, 24)
+    plotdir = mkdir(plotdir)
+
+    def mz(name):
+        return int(re.search(r'mZprime(\d+)', name).group(1))
+
+    def mzlabel(name):
+        return r'$m_{Z\prime}$ = ' + str(mz(name))
+
+    def save(outname):
+        print(f"Saving {outname}{' with pdf' if pdf else ''}")
+        plt.savefig(outname, bbox_inches='tight')
+        if pdf: plt.savefig(outname.replace('.png', '.pdf'), bbox_inches='tight')
+        plt.clf()
+
+    with open_root(rootfile) as f:
+        bdt_dirnames = [k.GetName() for k in f.GetListOfKeys()]
+        for bdt_dirname in bdt_dirnames:
+            d = f.Get(bdt_dirname)
+            histograms = {k.GetName() : d.Get(k.GetName()) for k in d.GetListOfKeys()}
+            signal_histograms = { k: v for k, v in histograms.items() if k.startswith('SVJ') }
+            bkg_histograms = { k: v for k, v in histograms.items() if not k.startswith('SVJ') }
+
+            fig = plt.figure(figsize=(8,8))
+            ax = fig.gca()
+            for i, (name, h) in enumerate(signal_histograms.items()):
+                binning, vals = th1_binning_and_values(h)
+                ax.step(binning[:-1], vals, where='post', label=mzlabel(name))
+            ax.legend()
+            ax.set_ylabel(r'$N_{events}$ / bin')
+            ax.set_xlabel(r'$m_{T}$ (GeV)')
+            save(osp.join(plotdir, f'{bdt_dirname}_signals.png'))
+
+            fig = plt.figure(figsize=(8,8))
+            ax = fig.gca()
+            for i, (name, h) in enumerate(bkg_histograms.items()):
+                binning, vals = th1_binning_and_values(h)
+                ax.step(binning[:-1], vals, where='post', label=name)
+            ax.legend()
+            ax.set_ylabel(r'$N_{events}$ / bin')
+            ax.set_xlabel(r'$m_{T}$ (GeV)')
+            ax.set_yscale('log')
+            save(osp.join(plotdir, f'{bdt_dirname}_bkgs.png'))
+
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.gca()
+        for bdt_dirname in bdt_dirnames:
+            h_bkg = f.Get(bdt_dirname + '/Bkg')
+            binning, vals = th1_binning_and_values(h_bkg)
+            ax.step(binning[:-1], vals, where='post', label=bdt_dirname)
+        ax.legend()
+        ax.set_ylabel(r'$N_{events}$ / bin')
+        ax.set_xlabel(r'$m_{T}$ (GeV)')
+        # ax.set_yscale('log')
+        save(osp.join(plotdir, f'bkg_per_bdtscore.png'))
+        
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.gca()
+        for bdt_dirname in bdt_dirnames:
+            h = f.Get(bdt_dirname + '/SVJ_mZprime350_mDark10_rinv03_alphapeak')
+            binning, vals = th1_binning_and_values(h)
+            ax.step(binning[:-1], vals, where='post', label=bdt_dirname)
+        ax.legend()
+        ax.set_ylabel(r'$N_{events}$ / bin')
+        ax.set_xlabel(r'$m_{T}$ (GeV)')
+        save(osp.join(plotdir, f'mz350_per_bdtscore.png'))
+
+
+
+
+# 'SVJ_mZprime250_mDark10_rinv03_alphapeak',
+# 'SVJ_mZprime300_mDark10_rinv03_alphapeak',
+# 'SVJ_mZprime350_mDark10_rinv03_alphapeak',
+# 'SVJ_mZprime400_mDark10_rinv03_alphapeak',
+# 'SVJ_mZprime450_mDark10_rinv03_alphapeak',
+# 'SVJ_mZprime500_mDark10_rinv03_alphapeak',
+# 'SVJ_mZprime550_mDark10_rinv03_alphapeak',
+# 'qcd',
+# 'ttjets',
+# 'wjets',
+# 'zjets',
+# 'Bkg'
+
+
+
 
 
 def combine_dirs_with_weights(directories, weights):
