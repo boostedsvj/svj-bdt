@@ -1,6 +1,8 @@
 import numpy as np
 import itertools
 from contextlib import contextmanager
+from time import strftime
+import os, os.path as osp
 
 def get_model(modeljson):
     import xgboost as xgb
@@ -81,3 +83,44 @@ def print_table(*args, **kwargs):
 
 def safe_divide(a, b):
     return np.divide(a, b, out=np.zeros_like(a), where=b!=0)
+
+def mkdir(dirname):
+    """
+    Makes dir if it doesn't exist, and fills in time formatting
+    """
+    dirname = strftime(dirname)
+    if not osp.isdir(dirname): os.makedirs(dirname)
+    return dirname
+
+class colorwheel_root:
+
+    def __init__(self, colors=[2, 3, 4, 6, 7, 8, 30, 38, 40, 41, 42, 46, 48]):
+        self.colors = colors
+        self._available_colors = self.colors.copy()
+
+    def __call__(self):
+        color = self._available_colors.pop(0)
+        if not len(self._available_colors):
+            self._available_colors = self.colors.copy()
+        return color
+
+def th1_binning_and_values(h):
+    """
+    Returns the binning and values of the histogram.
+    Does not include the overflows.
+    """
+    n_bins = h.GetNbinsX()
+    # GetBinLowEdge of the right overflow bin is the high edge of the actual last bin
+    binning = np.array([h.GetBinLowEdge(i) for i in range(1,n_bins+2)])
+    values = np.array([h.GetBinContent(i) for i in range(1,n_bins+1)])
+    return binning, values
+
+def set_matplotlib_fontsizes(small=10, medium=14, large=18):
+    import matplotlib.pyplot as plt
+    plt.rc('font', size=small)          # controls default text sizes
+    plt.rc('axes', titlesize=small)     # fontsize of the axes title
+    plt.rc('axes', labelsize=medium)    # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=small)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=small)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=small)    # legend fontsize
+    plt.rc('figure', titlesize=large)   # fontsize of the figure title
