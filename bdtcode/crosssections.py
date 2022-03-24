@@ -6,16 +6,13 @@ MT_BINNING = [160.+8.*i for i in range(44)]
 
 
 ttjets_xs = {
-    'TTJets_SingleLeptFromT'              : 831.76 * 0.219,
-    'TTJets_SingleLeptFromTbar'           : 831.76 * 0.219,
-    'TTJets_DiLept'                       : 831.76 * 0.105,
-    'TTJets_SingleLeptFromT_genMET-80'    : 32.23,
-    'TTJets_SingleLeptFromTbar_genMET-80' : 31.78,
-    'TTJets_DiLept_genMET-80'             : 22.46,
-    'TTJets_HT-600to800'                  : 1.808,
-    'TTJets_HT-800to1200'                 : 0.7490,
-    'TTJets_HT-1200to2500'                : 0.1315,
-    'TTJets_HT-2500toInf'                 : 0.001420,
+    'TTJets_SingleLeptFromT'              : 182.72,
+    'TTJets_SingleLeptFromTbar'           : 182.72,
+    'TTJets_DiLept'                       : 88.34,
+    'TTJets_HT-600to800'                  : 2.685,
+    'TTJets_HT-800to1200'                 : 1.096,
+    'TTJets_HT-1200to2500'                : 0.194,
+    'TTJets_HT-2500toInf'                 : 0.002,
     'TTJets'                              : 831.76,
     }
 qcd_xs = {
