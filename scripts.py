@@ -222,6 +222,10 @@ def make_histograms(rootfile, postbdt_dir):
     bin_width = 16.
     binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
 
+    # better_resolution_selectors = dict(pt_min=250, rt_min=1.15, dphi_max=100, eta_max=1)
+    better_resolution_selectors = {}
+
+
     with open_root(rootfile, 'RECREATE') as f:
         for min_score in [None, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
         #for min_score in [None]:
@@ -229,11 +233,11 @@ def make_histograms(rootfile, postbdt_dir):
             tdir.cd()
             # Loop over the mz' mass points
             for sig in sigs:
-                '''h = bdtcode.sample.sample_to_mt_histogram(
-                    sig, min_score=min_score, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak'
-                    )'''
-                #h = bdtcode.sample.sample_to_mt_histogram(sig, min_score=min_score, pt_min=500, rt_min=1.03, dphi_max=2.5, eta_max=1.5, trigger=550, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak')
-                h = bdtcode.sample.sample_to_mt_histogram(sig, min_score=min_score, pt_min=250, rt_min=1.15, dphi_max=100, eta_max=1, mt_binning=binning, name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak')
+                h = bdtcode.sample.sample_to_mt_histogram(
+                    sig, min_score=min_score, mt_binning=binning,
+                    name=f'SVJ_mZprime{sig.mz:.0f}_mDark10_rinv03_alphapeak',
+                    **better_resolution_selectors
+                    )
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
 
@@ -241,9 +245,7 @@ def make_histograms(rootfile, postbdt_dir):
             for bkg_group in bkgs:
                 h = H.sum_th1s(
                   get_group_name(bkg_group[0].label),
-                  #(bdtcode.sample.sample_to_mt_histogram(s, min_score=min_score, mt_binning=binning) for s in bkg_group)
-                  #)
-                  (bdtcode.sample.sample_to_mt_histogram(s, min_score=min_score, pt_min =250, rt_min=1.15, dphi_max=100, eta_max=1, mt_binning=binning) for s in bkg_group)
+                  (bdtcode.sample.sample_to_mt_histogram(s, min_score=min_score, mt_binning=binning, **better_resolution_selectors) for s in bkg_group)
                   )
                 print(f'Writing {h.GetName()} --> {rootfile}/{tdir.GetName()}')
                 h.Write()
@@ -379,6 +381,23 @@ def process_qcd_locally(model):
         outfile = osp.basename(qcd_dir + '.npz')
         rootfiles = seutils.ls_wildcard(osp.join(qcd_dir, '*.root'))
         H.dump_score_npzs_mp(model, rootfiles, outfile)
+
+
+
+
+@cli.command()
+def dev_sample():
+    directory = 'postbdt/girthreweight_fromumd_feb23'
+    labels = list(set(osp.basename(s) for s in glob.iglob(osp.join(directory, '*/*'))))
+    labels.sort()
+    label = labels[0]
+    print(f'Creating sample for {label=}')
+    sample = bdtcode.sample.Sample(label, H.combine_npzs(glob.iglob(osp.join(directory, f'*/*{label}*/*.npz'))))
+    import pprint
+    pprint.pprint(sample.d)
+
+    for key, value in sample.d.items():
+        print(f'{key}: {value.shape if is_array(value) else value}')
 
 
 if __name__ == '__main__':

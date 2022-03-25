@@ -73,14 +73,27 @@ class Sample:
     def trig(self):
         return self.d['trig']
 
-    #def mt(self, min_score=None):
-    #def mt(self, min_score=None, pt_min=None, rt_min=None, dphi_max=None, eta_max=None, trigger=None):
-    def mt(self, min_score=None, pt_min=None, rt_min=None, dphi_max=None, eta_max=None):
-        """Returns mt, with the option of cutting on the score here"""
-        #return self.d['mt'] if min_score is None else self.d['mt'][self.score > min_score]
-        return self.d['mt'][(self.pt > pt_min) & (self.rt > rt_min) & (abs(self.dphi) < dphi_max) & (abs(self.eta)<eta_max)] if min_score is None else self.d['mt'][(self.score > min_score) & (self.pt > pt_min) & (self.rt > rt_min) & (abs(self.dphi) < dphi_max) & (abs(self.eta)<eta_max)]
-        #to set the dataStudy ControlRegion
-        #return self.d['mt'][(self.pt > pt_min) & (self.rt < rt_min) & (abs(self.dphi) > dphi_max) & (abs(self.eta) > eta_max) & (self.trig > trigger)] if min_score is None else self.d['mt'][(self.score > min_score) & (self.pt > pt_min) & (self.rt < rt_min) & (abs(self.dphi) > dphi_max) & (abs(self.eta) > eta_max) & (self.trig > trigger)]
+    def better_resolution_selection(self, pt_min=None, rt_min=None, dphi_max=None, eta_max=None):
+        """
+        Returns the selection needed to improve resolution
+        """
+        selection = np.ones(self.d['mt'].shape, dtype=bool)
+        # Only select if the parameter is given
+        if pt_min is not None:
+            selection = (selection & (self.pt > pt_min))
+        if rt_min is not None:
+            selection = (selection & (self.rt > rt_min))
+        if dphi_max is not None:
+            selection = (selection & (abs(self.dphi) < dphi_max))
+        if eta_max is not None:
+            selection = (selection & (abs(self.eta)<eta_max))
+        return selection
+
+    def mt(self, min_score=None, **better_resolution_selectors):
+        selection = self.better_resolution_selection(**better_resolution_selectors)
+        if min_score:
+            selection = (selection & (self.score > min_score))
+        return self.d['mt'][selection]
 
     @property
     def score(self):
@@ -95,13 +108,9 @@ class Sample:
             min_score = np.expand_dims(min_score, -1)
         return (self.score > min_score).sum(axis=-1) / len(self)
 
-
-    #def other_selection_efficiency(self, pt_min, rt_min, dphi_max, eta_max, trigger):
-    #    return((self.pt > pt_min) & (self.rt < rt_min) & (abs(self.dphi) > dphi_max) & (abs(self.eta) > eta_max) & (self.trig > trigger)).sum() / len(self)
-
-    def other_selection_efficiency(self, pt_min, rt_min, dphi_max, eta_max):
-        return((self.pt > pt_min) & (self.rt > rt_min) & (abs(self.dphi) < dphi_max) & (abs(self.eta) < eta_max)).sum() / len(self)
-
+    def other_selection_efficiency(self, **better_resolution_selectors):
+        selection = self.better_resolution_selection(**better_resolution_selectors)
+        return selection.sum() / len(self)
 
     @property
     def preselection_efficiency(self):
@@ -113,30 +122,22 @@ class Sample:
     def nevents_after_bdt(self, min_score=None, lumi=137.2*1e3):
         return self.nevents_after_preselection(lumi) * self.bdt_efficiency(min_score)
         
-    #def nevents_after_allcuts(self, min_score=None, pt_min=None, rt_min=None, dphi_max=None, eta_max=None, trigger=None, lumi=137.2*1e3):
-        #return self.nevents_after_preselection(lumi) * self.bdt_efficiency(min_score) * self.other_selection_efficiency(pt_min, rt_min, dphi_max, eta_max, trigger)
-    def nevents_after_allcuts(self, min_score=None, pt_min=None, rt_min=None, dphi_max=None, eta_max=None, lumi=137.2*1e3):
-        return self.nevents_after_preselection(lumi) * self.bdt_efficiency(min_score) * self.other_selection_efficiency(pt_min, rt_min, dphi_max, eta_max)
+    def nevents_after_allcuts(self, min_score=None, lumi=137.2*1e3, **better_resolution_selectors):
+        return self.nevents_after_bdt(min_score, lumi) * self.other_selection_efficiency(**better_resolution_selectors)
 
     def __len__(self):
         """Returns number of entries in the underlying dict"""
         return len(self.score)
 
 
-#def sample_to_mt_histogram(sample: Sample, min_score=None, mt_binning=None, name=None):
-#def sample_to_mt_histogram(sample: Sample, min_score=None, pt_min=None, rt_min=None, dphi_max=None, eta_max=None, trigger=None, mt_binning=None, name=None):
-def sample_to_mt_histogram(sample: Sample, min_score=None, pt_min=None, rt_min=None, dphi_max=None, eta_max=None, mt_binning=None, name=None):
+def sample_to_mt_histogram(sample: Sample, min_score=None, mt_binning=None, name=None, **better_resolution_selectors):
     try_import_ROOT()
     import ROOT
-    #mt = sample.mt(min_score)
-    #mt = sample.mt(min_score, pt_min, rt_min, dphi_max, eta_max, trigger)
-    mt = sample.mt(min_score, pt_min, rt_min, dphi_max, eta_max)
+    mt = sample.mt(min_score, **better_resolution_selectors)
     binning = array('f', crosssections.MT_BINNING if mt_binning is None else mt_binning)
     if name is None: name = str(uuid.uuid4())
     h = ROOT.TH1F(name, name, len(binning)-1, binning)
     ROOT.SetOwnership(h, False)
     [ h.Fill(x) for x in mt ]
-    #H.normalize(h, sample.nevents_after_bdt(min_score))
-    #H.normalize(h, sample.nevents_after_allcuts(min_score, pt_min, rt_min, dphi_max, eta_max, trigger))
-    H.normalize(h, sample.nevents_after_allcuts(min_score, pt_min, rt_min, dphi_max, eta_max))
+    H.normalize(h, sample.nevents_after_allcuts(min_score, **better_resolution_selectors))
     return h
