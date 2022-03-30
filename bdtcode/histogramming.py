@@ -1,5 +1,6 @@
 import os, os.path as osp, uuid, multiprocessing, shutil, logging
-from time import strftime
+from time import strftime, perf_counter
+from contextlib import contextmanager
 
 import numpy as np
 import xgboost as xgb
@@ -8,11 +9,11 @@ import uptools
 import warnings
 uptools.logger.setLevel(logging.WARNING)
 
-from .dataset import preselection, get_subl, calculate_mt_rt, CutFlowColumn, is_array
-from .utils import try_import_ROOT
+from .dataset import TriggerEvaluator, preselection, get_subl, calculate_mt_rt, CutFlowColumn, is_array, ttstitch_selection
+from .utils import try_import_ROOT, catchtime
 
 
-def get_scores(rootfile, model):
+def get_scores(rootfile, model, dataset_name=''):
     '''
     Worker function that reads a single rootfile and returns the
     bdt score, and a few event-level variables to be potentially used
@@ -23,45 +24,56 @@ def get_scores(rootfile, model):
     X = []
     X_histogram = []
     cutflow = CutFlowColumn()
-    try:
-        for event in uptools.iter_events(rootfile):
-            cutflow.plus_one('total')
-            if not preselection(event, cutflow): continue
-            subl = get_subl(event)
-            mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
-            X.append([
-                subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
-                subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
-                subl.metdphi
-                ])
-            X_histogram.append([mt, rt, subl.pt, subl.energy])
-    except IndexError:
-        print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
-    except:
-        print(f'Error processing {rootfile}; Skipping')
+    trigger_evaluator = TriggerEvaluator(uptools.format_rootfiles(rootfile)[0])
+    with catchtime() as t: # Measure how long it took
+        try:
+            for event in uptools.iter_events(rootfile):
+                cutflow.plus_one('total')
+                if not ttstitch_selection(event, dataset_name, cutflow): continue
+                if not preselection(event, cutflow, trigger_evaluator=trigger_evaluator): continue
+                subl = get_subl(event)
+                mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
+                X.append([
+                    subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
+                    subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
+                    subl.metdphi
+                    ])
+                X_histogram.append([mt, rt, subl.pt, subl.energy])
+        except IndexError:
+            print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
+        except Exception as e:
+            print(f'Error processing {rootfile}; Skipping. Error was: ' + repr(e))
+    t = t()
+    print(f'Processed {cutflow["total"]} events in {t:.3f} seconds ({t/60.:.3f} min)')
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
-        return
+        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy']}
+        d.update(**cutflow.counts)
+        d['wtime'] = t
+        return d
     # Get the bdt scores
     score = model.predict_proba(np.array(X))[:,1]
     # Prepare and dump to file
     X_histogram = np.array(X_histogram)
     return dict(
         score=score,
+        wtime = t,
         **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy'])},
         **cutflow.counts
         )
 
 
-def dump_score_npz(rootfile, model, outfile):
+def dump_score_npz(rootfile, model, outfile, dataset_name=''):
     '''    
     Calculates score and dumps events that pass the preselection to a .npz file.
     '''
-    d = get_scores(rootfile, model)
+    d = get_scores(rootfile, model, dataset_name)
+    del d['wtime']
     print(f'Dumping {len(d["score"])} events from {rootfile} to {outfile}')
     outdir = osp.dirname(outfile)
     if outdir and not osp.isdir(outdir): os.makedirs(outdir)
     np.savez(outfile, **d)
+    return d
 
 
 def combine_ds(ds):
@@ -84,10 +96,14 @@ def combine_ds(ds):
             combined[key].append(value)
     # Make proper np arrays
     for key, values in combined.items():
-        if is_array(values[0]):
-            combined[key] = np.concatenate(values)
-        else:
-            combined[key] = np.array(values).sum()
+        try:
+            if is_array(values[0]):
+                combined[key] = np.concatenate(values)
+            else:
+                combined[key] = np.array(values).sum()
+        except IndexError:
+            print(f'Problem with {key=}, {values=}, {type(values)=}; len 0 should not happen here.')
+            continue
     return combined
 
 

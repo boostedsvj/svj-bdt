@@ -49,9 +49,19 @@ class Sample:
     @property
     def crosssection(self):
         """
-        Returns inclusive cross section based on the label
+        Returns inclusive cross section based on the label.
+        Takes into account the ttstitch efficiency
         """
-        return crosssections.label_to_xs(self.label)
+        return crosssections.label_to_xs(self.label) * self.ttstitch_efficiency
+
+    @property
+    def n_mc(self):
+        """
+        Returns the number of mc events used in the sample.
+        If the sample is ttjets, it returns the number of mc events
+        _after_ the stitching mask.
+        """
+        return self.d.get('ttstitch', self.d['total'])
 
     @property
     def pt(self):
@@ -114,7 +124,11 @@ class Sample:
 
     @property
     def preselection_efficiency(self):
-        return self.d['preselection']/self.d['total']
+        return self.d['preselection'] / self.n_mc
+
+    @property
+    def ttstitch_efficiency(self):
+        return self.n_mc / self.d['total']
 
     def nevents_after_preselection(self, lumi=137.2*1e3):
         return self.crosssection * lumi * self.preselection_efficiency * self.genjetpt_efficiency

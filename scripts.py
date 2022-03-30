@@ -40,16 +40,25 @@ def split_by_category(things, labels, pats=['QCD', 'TTJets', 'WJets', 'ZJets', '
         returnable[index_for_label(label)].append(thing)
     return returnable
 
-def get_samples_from_postbdt_directory(directory) -> List[List[bdtcode.sample.Sample]]:
+def get_samples_from_postbdt_directory(directory, debug=False) -> List[List[bdtcode.sample.Sample]]:
     print(f'Building samples from {directory}')
     # Gather all the available labels
     labels = list(set(osp.basename(s) for s in glob.iglob(osp.join(directory, '*/*'))))
     labels.sort()
     # Actually combine all npz files into one dict and create the overarching Sample class
-    samples = [
-        bdtcode.sample.Sample(l, H.combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))))
-        for l in labels
-        ]
+    if debug:
+        import pprint
+        samples = []
+        for l in labels:
+            npz_files = glob.glob(osp.join(directory, f'*/*{l}*/*.npz'))[:5]
+            s = bdtcode.sample.Sample(l, H.combine_npzs(npz_files))
+            print(l + '\n  ' + '\n  '.join(npz_files))
+            samples.append(s)
+    else:
+        samples = [
+            bdtcode.sample.Sample(l, H.combine_npzs(glob.iglob(osp.join(directory, f'*/*{l}*/*.npz'))))
+            for l in labels
+            ]
     # Split the samples by category
     samples = split_by_category(samples, labels)
     return samples
@@ -62,6 +71,9 @@ def clean_label(label):
         'ToLNu', 'ToNuNu',
         ]:
         label = label.replace(p, '')
+    label = label.replace('SingleLeptFromT', '1l_T')
+    label = label.replace('DiLept', '2l')
+    label = label.replace('_genMET-80', '_met80')
     return label
 
 
@@ -126,45 +138,70 @@ def plot_sb(postbdtdir):
 @cli.command()
 @click.argument('postbdtdir')
 @click.option('--group-summary', is_flag=True)
-def print_statistics(postbdtdir, group_summary):
-    cutflow_keys = [
-        'total',
-        '>=2jets',
-        'eta<2.4',
-        'trigger',
-        'ecf>0',
-        'rtx>1.1',
-        'nleptons==0',
-        'metfilter',
-        'preselection',
-        ]
-    header_column = ['label'] + cutflow_keys + ['xs', 'genpt>375', 'n137_presel']
+@click.option('--old-cuts', is_flag=True)
+def print_statistics(postbdtdir, group_summary, old_cuts):
+    new_cuts = not old_cuts
+    if old_cuts:
+        cutflow_keys = [
+            '>=2jets',
+            'eta<2.4',
+            'trigger',
+            'ecf>0',
+            'rtx>1.1',
+            'nleptons==0',
+            'metfilter',
+            'preselection',
+            ]
+    else:
+        cutflow_keys = [
+            '>=2jets',
+            'eta<2.4',
+            'jetak8>550',
+            'trigger',
+            'ecf>0',
+            'rtx>1.1',
+            'nleptons==0',
+            'metfilter',
+            'preselection',
+            ]
+    header_column = ['label', 'total'] + cutflow_keys + ['xs', 'genpt>375', 'n137_presel']
+    if new_cuts: header_column.insert(-1, 'ttstitch')
+    # print(f'{len(header_column)=}, {header_column=}')
 
     def format_group_column(samples):
         group_name = get_group_name(samples[0].label)
         group_xs = sum(s.crosssection for s in samples)
         def xs_weighted_sum(things_to_sum):
             return sum((s.crosssection/group_xs) * thing for s, thing in zip(samples, things_to_sum))
-        column = [group_name]
+        column = [group_name, '100.00%']
         combined_cutflow = [
-            xs_weighted_sum(s.d[key]/s.d['total'] for s in samples) for key in cutflow_keys
+            xs_weighted_sum(s.d[key]/s.n_mc for s in samples) for key in cutflow_keys
             ]
         column.extend(f"{100*eff:.2f}%" for eff in combined_cutflow)
         column.append(f'{group_xs:.1f}')
         group_genjetpteff = xs_weighted_sum(s.genjetpt_efficiency for s in samples)
-        column.append(f'{100.*group_genjetpteff:.3f}%')
+        column.append(f'{100.*group_genjetpteff:.2f}%')
+        if new_cuts: column.append(f'{100.*s.ttstitch_efficiency:.2f}%')
         column.append(f"{sum(s.nevents_after_preselection() for s in samples):.0f}")
         return column
 
     def format_single_sample_column(sample):
-        column = [clean_label(sample.label)] # , f'{xs:.1f}']
-        column.extend(f"{100*sample.d[key]/sample.d['total']:.2f}%" for key in cutflow_keys)
+        column = [clean_label(sample.label), '100.00%'] # , f'{xs:.1f}']
+        
+        column.extend(f"{100*sample.d[key]/sample.n_mc:.2f}%" for key in cutflow_keys)
         column.append(f'{sample.crosssection:.1f}')
         column.append(f'{100.*sample.genjetpt_efficiency:.3f}%')
+        if new_cuts: column.append(f'{100.*sample.ttstitch_efficiency:.2f}%')
         column.append(f'{sample.nevents_after_preselection():.0f}')
+        # print(f'{len(column)=}, {column=}')
         return column
 
-    samples = get_samples_from_postbdt_directory(postbdtdir)
+    samples = get_samples_from_postbdt_directory(postbdtdir, debug=False)
+    for s in flatten(*samples):
+        for cutflow_key in cutflow_keys:
+            if cutflow_key not in s.d:
+                print(f'{cutflow_key=} not in {s.label}; {s.d=}')
+                s.d[cutflow_key] = 0
 
     if group_summary:
         # Only print the cutflows per group, ignore individual sample level

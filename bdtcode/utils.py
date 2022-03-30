@@ -1,7 +1,7 @@
 import numpy as np
 import itertools
 from contextlib import contextmanager
-from time import strftime
+from time import strftime, perf_counter
 import os, os.path as osp
 
 def get_model(modeljson):
@@ -124,3 +124,18 @@ def set_matplotlib_fontsizes(small=10, medium=14, large=18):
     plt.rc('ytick', labelsize=small)    # fontsize of the tick labels
     plt.rc('legend', fontsize=small)    # legend fontsize
     plt.rc('figure', titlesize=large)   # fontsize of the figure title
+
+@contextmanager
+def catchtime():
+    start = perf_counter()
+    yield lambda: perf_counter() - start
+
+def np_load_remote(path, **kwargs):
+    """
+    Like np.load, but works on remote paths
+    """
+    from io import StringIO
+    import seutils
+    contents = seutils.cat(path)
+    f = StringIO(contents)
+    return np.load(f, **kwargs)

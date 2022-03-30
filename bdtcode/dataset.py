@@ -1,4 +1,3 @@
-
 import os, os.path as osp, glob
 import numpy as np
 import tqdm
@@ -117,18 +116,96 @@ class CutFlowColumn:
     def __getitem__(self, name):
         return self.counts.get(name, 0)
 
-def preselection(event, cut_flow=None):
+
+def ttstitch_selection(event, dataset_name, cutflow=None):
+    gen_ht = event[b'GenHT']
+    gen_met = event[b'GenMET']
+    n_leptons = event[b'NElectrons'] + event[b'NMuons']
+
+    if not 'TTJets' in dataset_name:
+        passes = True
+    elif 'TTJets_TuneCP5_13TeV-madgraphMLM-pythia8' in dataset_name:
+        # Inclusive
+        passes = gen_ht < 600. and n_leptons == 0
+    elif 'TTJets_HT-' in dataset_name:
+        passes = gen_ht >= 600.
+    elif 'TTJets_DiLep' in dataset_name or 'TTJets_SingleLep' in dataset_name:
+        if not 'genMET' in dataset_name:
+            passes = gen_ht < 600. and gen_met < 80.
+        else:
+            passes = gen_ht < 600. and gen_met >= 80.
+
+    if cutflow and passes: cutflow.plus_one('ttstitch')
+    return passes
+
+
+
+triggers_2018 = [
+    # AK8PFJet triggers
+    'HLT_AK8PFJet500_v',
+    'HLT_AK8PFJet550_v',
+    # CaloJet
+    'HLT_CaloJet500_NoJetID_v',
+    'HLT_CaloJet550_NoJetID_v',
+    # PFJet and PFHT
+    'HLT_PFHT1050_v', # but, interestingly, not HLT_PFHT8**_v or HLT_PFHT9**_v, according to the .txt files at least
+    'HLT_PFJet500_v',
+    'HLT_PFJet550_v',
+    # Trim mass jetpt+HT
+    'HLT_AK8PFHT800_TrimMass50_v',
+    'HLT_AK8PFHT850_TrimMass50_v',
+    'HLT_AK8PFHT900_TrimMass50_v',
+    'HLT_AK8PFJet400_TrimMass30_v',
+    'HLT_AK8PFJet420_TrimMass30_v',
+    # MET triggers
+    # 'HLT_PFHT500_PFMET100_PFMHT100_IDTight_v',
+    # 'HLT_PFHT500_PFMET110_PFMHT110_IDTight_v',
+    # 'HLT_PFHT700_PFMET85_PFMHT85_IDTight_v',
+    # 'HLT_PFHT700_PFMET95_PFMHT95_IDTight_v',
+    # 'HLT_PFHT800_PFMET75_PFMHT75_IDTight_v',
+    # 'HLT_PFHT800_PFMET85_PFMHT85_IDTight_v',
+    ]
+
+
+class TriggerEvaluator:
+    def __init__(self, rootfile):
+        """
+        `rootfile` should be a path to a rootfile from which to read the title of the 
+        'TriggerPass' branch.
+        """
+        import uproot3
+        title_bstring = uproot3.open(rootfile).get('TreeMaker2/PreSelection')[ b'TriggerPass'].title
+        self.titles = title_bstring.decode('utf-8').split(',')
+        self.index_map = {self.titles[i] : i for i in range(len(self.titles)) }
+        self.year_map = {}
+
+    def get_indices_for_year(self, year):
+        if not year in self.year_map:
+            titles_this_year = globals()['triggers_{}'.format(year)]
+            self.year_map[year] = np.array([self.index_map[title] for title in titles_this_year])
+        return self.year_map[year]
+
+    def __call__(self, event, year=2018):
+        indices = self.get_indices_for_year(year)
+        return np.any(event[b'TriggerPass'][indices] == 1)
+
+
+def preselection(event, cut_flow=None, trigger_evaluator=None):
     if cut_flow is None: cut_flow = CutFlowColumn()
 
     if len(event[b'JetsAK15.fCoordinates.fPt']) < 2:
         return False
-    cut_flow.plus_one('>=2fjets')
+    cut_flow.plus_one('>=2jets')
 
     if abs(event[b'JetsAK15.fCoordinates.fEta'][1]) > 2.4:
         return False
     cut_flow.plus_one('eta<2.4')
 
     if len(event[b'JetsAK8.fCoordinates.fPt']) == 0 or event[b'JetsAK8.fCoordinates.fPt'][0] < 550.:
+        return False
+    cut_flow.plus_one('jetak8>550')
+
+    if trigger_evaluator is not None and not(trigger_evaluator(event)):
         return False
     cut_flow.plus_one('trigger')
 
