@@ -105,6 +105,34 @@ def calculate_mt(jets, met, metphi):
         )
     return mt
 
+
+def calculate_mass(jets):
+    mass = np.sqrt(jets.energy**2 - jets.px**2 - jets.py**2 - jets.pz**2)
+    return mass
+
+def calculate_massmet(jets, met, metphi):
+    metx = np.cos(metphi) * met
+    mety = np.sin(metphi) * met
+    mass_viz = np.sqrt(jets.energy**2 - jets.px**2 - jets.py**2 - jets.pz**2)
+    metdphi = calc_dphi(jets.phi, metphi)
+    massmet = np.sqrt(mass_viz**2 + 2 * met * np.sqrt(jets.pz**2 + jets.pt**2 + mass_viz**2) - 2 * jets.pt * met * np.cos(metdphi))
+    return massmet
+
+def calculate_massmetpz(jets, met, metphi):
+    metx = np.cos(metphi) * met
+    mety = np.sin(metphi) * met
+    mass_viz = np.sqrt(jets.energy**2 - jets.px**2 - jets.py**2 - jets.pz**2)
+    mass = np.sqrt(mass_viz**2 + 2 * np.sqrt(met**2 + jets.pz**2 ) * np.sqrt(jets.pz**2 + jets.pt**2 + mass_viz**2) - 2 * (jets.pt * met * np.cos(calc_dphi(metphi, jets.phi)) + jets.pz**2))
+    return mass
+
+def calculate_massmetpzm(jets, met, metphi):
+    metx = np.cos(metphi) * met
+    mety = np.sin(metphi) * met
+    mass_viz = np.sqrt(jets.energy**2 - jets.px**2 - jets.py**2 - jets.pz**2)
+    mass = np.sqrt(2*mass_viz**2 +2*np.sqrt(met**2+jets.pz**2+mass_viz**2)*np.sqrt(jets.pz**2+jets.pt**2+mass_viz**2)-2*(jets.pt*met*np.cos(calc_dphi(metphi, jets.phi))+jets.pz**2))
+    return mass
+
+
 class CutFlowColumn:
     def __init__(self) -> None:
         self.counts = {}

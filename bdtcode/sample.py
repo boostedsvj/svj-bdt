@@ -65,29 +65,29 @@ class Sample:
 
     @property
     def pt(self):
-        return self.d['pt']
+        return np.array(self.d['pt'])
 
     @property
     def rt(self):
-        return self.d['rt']
+        return np.array(self.d['rt'])
 
     @property
     def dphi(self):
-        return self.d['dphi']
+        return np.array(self.d['dphi'])
 
     @property
     def eta(self):
-        return self.d['eta']
+        return np.array(self.d['eta'])
 
     @property
     def trig(self):
-        return self.d['trig']
+        return np.array(self.d['trig'])
 
     def better_resolution_selection(self, pt_min=None, rt_min=None, dphi_max=None, eta_max=None):
         """
         Returns the selection needed to improve resolution
         """
-        selection = np.ones(self.d['mt'].shape, dtype=bool)
+        selection = np.ones(len(self), dtype=bool)
         # Only select if the parameter is given
         if pt_min is not None:
             selection = (selection & (self.pt > pt_min))
@@ -103,11 +103,13 @@ class Sample:
         selection = self.better_resolution_selection(**better_resolution_selectors)
         if min_score:
             selection = (selection & (self.score > min_score))
-        return self.d['mt'][selection]
+        # print(self.d['mt'], type(self.d['mt']))
+        # print(selection, type(selection))
+        return np.array(self.d['mt'])[selection]
 
     @property
     def score(self):
-        return self.d['score']
+        return np.array(self.d['score'])
 
     def bdt_efficiency(self, min_score=None):
         if min_score is None:
@@ -124,7 +126,7 @@ class Sample:
 
     @property
     def preselection_efficiency(self):
-        return self.d['preselection'] / self.n_mc
+        return self.d.get('preselection', 0) / self.n_mc
 
     @property
     def ttstitch_efficiency(self):
