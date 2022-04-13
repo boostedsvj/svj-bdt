@@ -9,7 +9,7 @@ import uptools
 import warnings
 uptools.logger.setLevel(logging.WARNING)
 
-from .dataset import TriggerEvaluator, preselection, get_subl, calculate_mt_rt, CutFlowColumn, is_array, ttstitch_selection
+from .dataset import TriggerEvaluator, preselection, get_subl, calculate_mt_rt, CutFlowColumn, is_array, ttstitch_selection, calculate_mass
 from .utils import try_import_ROOT, catchtime
 
 
@@ -32,13 +32,14 @@ def get_scores(rootfile, model, dataset_name=''):
                 if not ttstitch_selection(event, dataset_name, cutflow): continue
                 if not preselection(event, cutflow, trigger_evaluator=trigger_evaluator): continue
                 subl = get_subl(event)
+                subl.mass = calculate_mass(subl)
                 mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
                 X.append([
                     subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
                     subl.metdphi
                     ])
-                X_histogram.append([mt, rt, subl.pt, subl.energy])
+                X_histogram.append([mt, rt, subl.pt, subl.energy, subl.met, subl.phi, subl.eta, subl.mass, subl.metphi])
         except IndexError:
             print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
         except Exception as e:
@@ -47,7 +48,7 @@ def get_scores(rootfile, model, dataset_name=''):
     print(f'Processed {cutflow["total"]} events in {t:.3f} seconds ({t/60.:.3f} min)')
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
-        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy']}
+        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi']}
         d.update(**cutflow.counts)
         d['wtime'] = t
         return d
@@ -58,7 +59,7 @@ def get_scores(rootfile, model, dataset_name=''):
     return dict(
         score=score,
         wtime = t,
-        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy'])},
+        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi'])},
         **cutflow.counts
         )
 
