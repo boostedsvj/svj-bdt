@@ -30,12 +30,23 @@ import os.path as osp, os
 import qondor, seutils
 
 # Put all the bdtcode python files back in a directory called 'bdtcode'
-os.makedirs('bdtcode/')
-for f in qondor.scope.bdtcode_files:
-    f = osp.basename(f)
-    os.rename(f, 'bdtcode/'+f)
-import bdtcode
+# os.makedirs('bdtcode/')
+# for f in qondor.scope.bdtcode_files:
+#     f = osp.basename(f)
+#     os.rename(f, 'bdtcode/'+f)
 
+os.makedirs('bdtcode/')
+os.chdir('bdtcode')
+github_url = 'https://raw.githubusercontent.com/boostedsvj/svj-bdt/merged/bdtcode/'
+for f in [
+    '__init__.py', 'crosssections.py', 'crosssections_Oct12.npz',
+    'dataset.py', 'histogramming.py', 'sample.py', 'utils.py'
+    ]:
+    os.system('wget ' + github_url + f)
+os.chdir('..')
+
+
+import bdtcode
 model = bdtcode.utils.get_model(qondor.scope.bdt_json)
 
 for rootfile in qondor.scope.rootfiles:

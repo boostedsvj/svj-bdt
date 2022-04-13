@@ -147,13 +147,12 @@ class CutFlowColumn:
 
 
 def ttstitch_selection(event, dataset_name, cutflow=None):
+    if not 'TTJets' in dataset_name: return True
     mad_ht = event[b'madHT']
     gen_met = event[b'GenMET']
     n_leptons = np.isin( np.abs(event[b'GenParticles_PdgId']), [11, 13, 15] ).sum()
 
-    if not 'TTJets' in dataset_name:
-        passes = True
-    elif 'TTJets_TuneCP5_13TeV-madgraphMLM-pythia8' in dataset_name:
+    if 'TTJets_TuneCP5_13TeV-madgraphMLM-pythia8' in dataset_name:
         # Inclusive
         passes = mad_ht < 600. and n_leptons == 0
     elif 'TTJets_HT-' in dataset_name:
