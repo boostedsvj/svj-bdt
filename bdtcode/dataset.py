@@ -5,6 +5,7 @@ import uptools, seutils
 from contextlib import contextmanager
 import argparse
 
+import bdtcode
 from .utils import is_array
 
 
@@ -217,7 +218,9 @@ class TriggerEvaluator:
         return np.any(event[b'TriggerPass'][indices] == 1)
 
 
-def preselection(event, cut_flow=None, trigger_evaluator=None):
+def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
+    if ul is None: ul = bdtcode.UL # if not determined, use the global default
+
     if cut_flow is None: cut_flow = CutFlowColumn()
 
     if len(event[b'JetsAK15.fCoordinates.fPt']) < 2:
@@ -259,7 +262,7 @@ def preselection(event, cut_flow=None, trigger_evaluator=None):
         b'HBHENoiseFilter',
         b'HBHEIsoNoiseFilter',
         b'eeBadScFilter',
-        b'ecalBadCalibReducedFilter',
+        b'ecalBadCalibFilter' if ul else b'ecalBadCalibReducedFilter',
         b'BadPFMuonFilter',
         b'BadChargedCandidateFilter',
         b'globalSuperTightHalo2016Filter',
@@ -281,18 +284,18 @@ def get_subl(event):
         event[b'JetsAK15.fCoordinates.fE'],
         ecfC2b1 = event[b'JetsAK15_ecfC2b1'],
         ecfC2b2 = event[b'JetsAK15_ecfC2b2'],
-        ecfC3b1 = event[b'JetsAK15_ecfC3b1'],
-        ecfC3b2 = event[b'JetsAK15_ecfC3b2'],
+        # ecfC3b1 = event[b'JetsAK15_ecfC3b1'],
+        # ecfC3b2 = event[b'JetsAK15_ecfC3b2'],
         ecfD2b1 = event[b'JetsAK15_ecfD2b1'],
         ecfD2b2 = event[b'JetsAK15_ecfD2b2'],
         ecfM2b1 = event[b'JetsAK15_ecfM2b1'],
         ecfM2b2 = event[b'JetsAK15_ecfM2b2'],
-        ecfM3b1 = event[b'JetsAK15_ecfM3b1'],
-        ecfM3b2 = event[b'JetsAK15_ecfM3b2'],
+        # ecfM3b1 = event[b'JetsAK15_ecfM3b1'],
+        # ecfM3b2 = event[b'JetsAK15_ecfM3b2'],
         ecfN2b1 = event[b'JetsAK15_ecfN2b1'],
         ecfN2b2 = event[b'JetsAK15_ecfN2b2'],
-        ecfN3b1 = event[b'JetsAK15_ecfN3b1'],
-        ecfN3b2 = event[b'JetsAK15_ecfN3b2'],
+        # ecfN3b1 = event[b'JetsAK15_ecfN3b1'],
+        # ecfN3b2 = event[b'JetsAK15_ecfN3b2'],
         multiplicity = event[b'JetsAK15_multiplicity'],
         girth = event[b'JetsAK15_girth'],
         ptD = event[b'JetsAK15_ptD'],

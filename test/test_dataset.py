@@ -1,4 +1,5 @@
 import pytest
+import bdtcode
 import bdtcode.dataset as dataset
 import numpy as np
 
@@ -34,6 +35,7 @@ testdir = osp.dirname(osp.abspath(__file__))
 bdt_json = osp.join(testdir, 'svjbdt_girthreweight_Jan06.json')
 sig_rootfile = osp.join(testdir, 'mz450_example_treemaker.root')
 bkg_rootfile = osp.join(testdir, 'ttjets_example_treemaker.root')
+data_rootfile = osp.join(testdir, 'data_ntuple_example.root')
 
 def download_test_files():
     """Downloads the testfiles if they are not available yet"""
@@ -48,6 +50,12 @@ def download_test_files():
             'root://cmseos.fnal.gov//store/user/lpcdarkqcd/boosted/other/bdtcode_testfiles/ttjets_example_treemaker.root',
             bkg_rootfile
             )
+    if not osp.isfile(bkg_rootfile):
+        seutils.cp(
+            'root://cmseos.fnal.gov//store/user/lpcdarkqcd/boosted/other/bdtcode_testfiles/data_ntuple_example.root',
+            data_rootfile
+            )
+
 
 def test_testfiles():
     download_test_files()
@@ -91,6 +99,21 @@ def test_new_mass_variables():
     download_test_files()
     import uptools
     for event in uptools.iter_events(sig_rootfile):
+        if not dataset.preselection(event): continue
+        subl = dataset.get_subl(event)
+        met = event[b'MET']
+        metphi = event[b'METPhi']
+        print(dataset.calculate_mass(subl))
+        print(dataset.calculate_massmet(subl, met, metphi))
+        print(dataset.calculate_massmetpz(subl, met, metphi))
+        print(dataset.calculate_massmetpzm(subl, met, metphi))
+        return
+
+def test_data_ntuple():
+    download_test_files()
+    bdtcode.do_ultra_legacy()
+    import uptools
+    for event in uptools.iter_events(data_rootfile):
         if not dataset.preselection(event): continue
         subl = dataset.get_subl(event)
         met = event[b'MET']
