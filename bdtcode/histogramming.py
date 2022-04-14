@@ -34,13 +34,14 @@ def get_scores(rootfile, model, dataset_name=''):
                 subl = get_subl(event)
                 subl.mass = calculate_mass(subl)
                 met = event[b'MET']
+                metphi = event[b'METPhi']
                 mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
                 X.append([
                     subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
                     subl.metdphi
                     ])
-                X_histogram.append([mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, subl.mass, subl.metphi])
+                X_histogram.append([mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, subl.mass, metphi])
         except IndexError:
             print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
         except Exception as e:
