@@ -249,9 +249,9 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
             return False
     cut_flow.plus_one('ecf>0')
 
-    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.1:
+    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.0:
         return False
-    cut_flow.plus_one('rtx>1.1')
+    cut_flow.plus_one('rtx>1.0')
 
     if event[b'Muons'] > 0 or event[b'Electrons'] > 0:
         return False
