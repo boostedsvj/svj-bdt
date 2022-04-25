@@ -105,7 +105,8 @@ class Sample:
             selection = (selection & (self.score > min_score))
         # print(self.d['mt'], type(self.d['mt']))
         # print(selection, type(selection))
-        return np.array(self.d['mt'])[selection]
+        #return np.array(self.d['mt'])[selection]
+        return np.array(self.d['mt'][selection]) #-->new mass variable
 
     @property
     def score(self):

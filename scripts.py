@@ -242,6 +242,7 @@ def print_statistics(postbdtdir, group_summary, old_cuts):
 
 def get_group_name(label):
     for pat in ['qcd', 'ttjets', 'wjets', 'zjets']:
+    #for pat in ['qcd']:
         if pat in label.lower():
             return pat
     raise Exception(f'No group name for {label}')
@@ -253,14 +254,14 @@ def make_histograms(rootfile, postbdt_dir):
     *bkgs, sigs = get_samples_from_postbdt_directory(postbdt_dir)
 
     # binning = MT_BINNING
-    left = 204.
+    left = 0.
     #right = 500.
-    right = 700.
+    right = 1000.
     bin_width = 16.
     binning = [left+i*bin_width for i in range(math.ceil((right-left)/bin_width))]
 
-    # better_resolution_selectors = dict(pt_min=250, rt_min=1.15, dphi_max=100, eta_max=1)
-    better_resolution_selectors = {}
+    better_resolution_selectors = dict(pt_min=250, rt_min=1.15, dphi_max=100, eta_max=1)
+    #better_resolution_selectors = {}
 
 
     with open_root(rootfile, 'RECREATE') as f:
@@ -280,6 +281,7 @@ def make_histograms(rootfile, postbdt_dir):
 
             hs_bkg = []
             for bkg_group in bkgs:
+                print(bkg_group[0].label)
                 h = H.sum_th1s(
                   get_group_name(bkg_group[0].label),
                   (bdtcode.sample.sample_to_mt_histogram(s, min_score=min_score, mt_binning=binning, **better_resolution_selectors) for s in bkg_group)
