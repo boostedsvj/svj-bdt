@@ -395,7 +395,7 @@ def process_bkg(rootfiles, outfile=None, chunked_save=None, nmax=None):
             else:
                 print(f'Problem with {rootfile}; saving {n_presel_this} good entries')
 
-        outfile = 'data/bkg/{}.npz'.format(dirname_plus_basename(rootfile).replace('.root', ''))
+        if outfile is None: outfile = 'data/bkg/{}.npz'.format(dirname_plus_basename(rootfile).replace('.root', ''))
         print(f'n_total: {n_total_this}; n_presel: {n_presel_this} ({(100.*n_presel_this)/n_total_this:.2f}%)')
         outdir = osp.abspath(osp.dirname(outfile))
         if not osp.isdir(outdir): os.makedirs(outdir)
