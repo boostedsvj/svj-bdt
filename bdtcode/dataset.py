@@ -396,10 +396,10 @@ def make_feature_npz_signal(rootfiles, outfile=None):
     return X, X_truth
 
 
-def make_feature_npzs_bkg(rootfiles, outdir):
+def make_feature_npzs_bkg(rootfiles, outfile):
+    X = []
     for rootfile in uptools.format_rootfiles(rootfiles):
         bdtcode.logger.info(f'Processing {rootfile}')
-        X = []
         n_total = 0
         n_passed = 0
         try:
@@ -418,10 +418,9 @@ def make_feature_npzs_bkg(rootfiles, outdir):
 
         bdtcode.logger.info(f'n_total: {n_total}; n_passed: {n_passed} ({(100.*n_passed)/n_total:.2f}%)')
 
-        outfile = osp.join(outdir, dirname_plus_basename(rootfile).replace('.root', '.npz'))
-        if not osp.isdir(osp.abspath(osp.dirname(outfile))): os.makedirs(osp.abspath(osp.dirname(outfile)))
-        bdtcode.logger.info(f'Saving {n_passed} entries to {outfile}')
-        np.savez(outfile, X=np.vstack(X), titles=FEATURE_TITLES)
+    if not osp.isdir(osp.abspath(osp.dirname(outfile))): os.makedirs(osp.abspath(osp.dirname(outfile)))
+    bdtcode.logger.info(f'Saving {n_passed} entries to {outfile}')
+    np.savez(outfile, X=np.vstack(X), titles=FEATURE_TITLES)
 
 
 
