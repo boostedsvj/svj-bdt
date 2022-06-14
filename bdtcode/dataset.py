@@ -309,18 +309,17 @@ def get_subl(event):
     return subl
 
 
-def process_signal(rootfiles, outfile=None):
-    n_total = 0
-    n_presel = 0
-    n_final = 0
+class Status:
+    PASSED = 1
+    FAILED_PRESEL = 2
+    FAILED_SIGNAL_TRUTH = 3
 
-    X = []
+def get_feature_vector(event, include_signal_truth=False):
+    if not preselection(event): return Status.FAILED_PRESEL, None
 
-    for event in uptools.iter_events(rootfiles):
-        n_total += 1
-        if not preselection(event): continue
-        n_presel += 1
+    subl = get_subl(event)
 
+    if include_signal_truth:
         genparticles = FourVectorArray(
             event[b'GenParticles.fCoordinates.fPt'],
             event[b'GenParticles.fCoordinates.fEta'],
@@ -331,81 +330,104 @@ def process_signal(rootfiles, outfile=None):
             )
 
         zprime = genparticles[genparticles.pdgid == 4900023]
-        if len(zprime) == 0: continue
+        if len(zprime) == 0: return Status.FAILED_SIGNAL_TRUTH, None
         zprime = zprime[0]
 
         dark_quarks = genparticles[(np.abs(genparticles.pdgid) == 4900101) & (genparticles.status == 71)]
-        if len(dark_quarks) != 2: continue
-
-        subl = get_subl(event)
+        if len(dark_quarks) != 2: return Status.FAILED_SIGNAL_TRUTH, None
 
         # Verify zprime and dark_quarks are within 1.5 of the jet
         if not all(calc_dr(subl.eta, subl.phi, obj.eta, obj.phi) < 1.5 for obj in [
             zprime, dark_quarks[0], dark_quarks[1]
             ]):
-            continue
+            return Status.FAILED_SIGNAL_TRUTH, None
 
-        n_final += 1
+    # MUST BE IN SYNC WITH THE VAR "FEATURE_TITLES" BELOW
+    X = [
+        subl.ptD, subl.axismajor, subl.multiplicity, subl.rt, subl.mt,
+        subl.girth, subl.axisminor, subl.metdphi,  
+        subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
+        subl.metdphi, subl.pt, subl.eta, subl.phi, subl.energy
+        ]
+    
+    if include_signal_truth:
+        X_truth = [zprime.pt, zprime.eta, zprime.phi, zprime.energy]
 
-        X.append([
-            subl.ptD, subl.axismajor, subl.multiplicity, subl.rt, subl.mt,
-            subl.girth, subl.axisminor, subl.metdphi,  
-            #subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
-            subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
-            subl.metdphi,
-            subl.pt, subl.eta, subl.phi, subl.energy,
-            zprime.pt, zprime.eta, zprime.phi, zprime.energy
-            ])
-        #X.append([subl.rt])
+    return Status.PASSED, ((X, X_truth) if include_signal_truth else X)
 
-    print(f'n_total: {n_total}; n_presel: {n_presel}; n_final: {n_final} ({100.*n_final/float(n_total):.2f}%)')
-
-    if outfile is None: outfile = 'data/signal.npz'
-    outdir = osp.abspath(osp.dirname(outfile))
-    if not osp.isdir(outdir): os.makedirs(outdir)
-    print(f'Saving {n_final} entries to {outfile}')
-    np.savez(outfile, X=X)
+FEATURE_TITLES = [
+    'ptd', 'axismajor', 'multiplicity', 'rt', 'mt',
+    'girth', 'axisminor', 'metdphi',
+    'ecfM2b1', 'ecfD2b1', 'ecfC2b1', 'ecfN2b2',
+    'metdphi', 'pt', 'eta', 'phi', 'energy'
+    ]
 
 
-def process_bkg(rootfiles, outfile=None, chunked_save=None, nmax=None):
-    n_total_all = 0
-    n_presel_all = 0
-    for rootfile in uptools.format_rootfiles(rootfiles):
-        X = []
-        n_total_this = 0
-        n_presel_this = 0
-        try:
-            for event in uptools.iter_events(rootfile):
-                n_total_this += 1
-                n_total_all += 1
-                if not preselection(event): continue
-                n_presel_this += 1
-                n_presel_all += 1
-                subl = get_subl(event)
-                X.append([
-                    subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
-                    subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
-                    subl.metdphi,
-                    subl.pt, subl.eta, subl.phi, subl.energy
-                    ])
-        except IndexError:
-            if n_presel_this == 0:
-                print(f'Problem with {rootfile}; no entries, skipping')
-                continue
-            else:
-                print(f'Problem with {rootfile}; saving {n_presel_this} good entries')
+def make_feature_npz_signal(rootfiles, outfile=None):
+    """
+    Takes a list of rootfiles, and builds a combined feature vector from all events
+    in those rootfiles that pass certain cuts (see `get_feature_vector`).
+    """
+    n_total = 0
+    n_presel = 0
+    n_passed = 0
+    X = []
+    X_truth = []
 
-        if outfile is None: outfile = 'data/bkg/{}.npz'.format(dirname_plus_basename(rootfile).replace('.root', ''))
-        print(f'n_total: {n_total_this}; n_presel: {n_presel_this} ({(100.*n_presel_this)/n_total_this:.2f}%)')
+    for event in uptools.iter_events(rootfiles):
+        n_total += 1
+        status, vectors = get_feature_vector(event, include_signal_truth=True)
+        if status == Status.FAILED_PRESEL: continue
+        n_presel += 1
+        if status == Status.FAILED_SIGNAL_TRUTH: continue
+        n_passed += 1
+
+        X.append(vectors[0])
+        X_truth.append(vectors[1])
+
+    bdtcode.logger.info(f'n_total: {n_total}; n_presel: {n_presel}; n_final: {n_passed} ({100.*n_passed/float(n_total):.2f}%)')
+
+    if outfile:
         outdir = osp.abspath(osp.dirname(outfile))
         if not osp.isdir(outdir): os.makedirs(outdir)
-        print(f'Saving {n_presel_this} entries to {outfile}')
-        np.savez(outfile, X=X)
+        bdtcode.logger.info(f'Saving {n_passed} entries to {outfile}')
+        np.savez(outfile, X=np.vstack(X), X_truth=np.vstack(X_truth), titles=FEATURE_TITLES)
+
+    return X, X_truth
+
+
+def make_feature_npzs_bkg(rootfiles, outdir):
+    for rootfile in uptools.format_rootfiles(rootfiles):
+        bdtcode.logger.info(f'Processing {rootfile}')
+        X = []
+        n_total = 0
+        n_passed = 0
+        try:
+            for event in uptools.iter_events(rootfile):
+                n_total += 1
+                status, vector = get_feature_vector(event, include_signal_truth=False)
+                if status == Status.FAILED_PRESEL: continue
+                n_passed += 1
+                X.append(vector)
+        except IndexError:
+            if n_total == 0:
+                bdtcode.logger.error(f'Problem with {rootfile}; no entries, skipping')
+                continue
+            else:
+                bdtcode.logger.error(f'Problem with {rootfile}; saving {n_passed} good entries')
+
+        bdtcode.logger.info(f'n_total: {n_total}; n_passed: {n_passed} ({(100.*n_passed)/n_total:.2f}%)')
+
+        outfile = osp.join(outdir, dirname_plus_basename(rootfile).replace('.root', '.npz'))
+        if not osp.isdir(osp.abspath(osp.dirname(outfile))): os.makedirs(osp.abspath(osp.dirname(outfile)))
+        bdtcode.logger.info(f'Saving {n_passed} entries to {outfile}')
+        np.savez(outfile, X=np.vstack(X), titles=FEATURE_TITLES)
 
 
 
 def dirname_plus_basename(fullpath):
     return f'{osp.basename(osp.dirname(fullpath))}/{osp.basename(fullpath)}'
+
 
 @contextmanager
 def make_local(rootfile):
@@ -425,45 +447,13 @@ def iter_rootfiles_umd(rootfiles):
             yield tmpfile
 
 
-'''def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--action', type=str, choices=['signal', 'bkg', 'signal_local'])
-    args = parser.parse_args
 
-
-    if args.signal_local:
-        process_signal(
-            list(sorted(glob.iglob('raw_signal/*.root')))
-            )
-    elif args.signal:
-    if args.signal:
-        process_signal(
-            iter_rootfiles_umd(
-                seutils.ls_wildcard(
-                    #'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/sig_mz250_rinv0p3_mDark20_Mar31/*.root'
-		    #'root://cmseos.fnal.gov//store/user/lpcdarkqcd/MCSamples_Summer21/TreeMaker/genjetpt375_mz250_mdark10_rinv0.3/*.root'
-		    '/home/snabili/Bsvj/YiMu_genSamples/finaltreemakersamples/M250.root'
-                    ),
-                #+ ['gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/thomas.klijnsma/qcdtest3/sig_ECF_typeCDMN_Jan29/1.root']
-                #),
-            ))
-    elif args.bkg:
-        process_bkg(
-            iter_rootfiles_umd(seutils.ls_wildcard(
-                'gsiftp://hepcms-gridftp.umd.edu//mnt/hadoop/cms/store/user/snabili/BKG/bkg_May04_year2018/*/*.root'
-                )),
-            )'''
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('signal', type=str)
-    args = parser.parse_args()
-
-    if args.signal:
-      process_signal(
-            #list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/treemaker_mz350mDard10rinv0p3.root')))
-            list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/M250.root')))
-            )
+def outdated():
+    make_feature_npz_signal(
+        list(sorted(glob.iglob('/data/users/snabili/BSVJ/08242020/CMSSW_10_2_21/src/TreeMaker/Production/test/YiMu_genSamples/finaltreemakersamples/M250.root'))),
+        'out.npz'
+        )
 
 if __name__ == '__main__':
-    main()
+    # outdated()
+    test_make_feature_npz()
