@@ -347,7 +347,7 @@ def get_feature_vector(event, include_signal_truth=False):
         subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
         subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
         subl.metdphi,
-        subl.pt, subl.eta, subl.phi, subl.energy
+        subl.pt, subl.eta, subl.phi, subl.energy,
         subl.rt, subl.mt
         ]
     
