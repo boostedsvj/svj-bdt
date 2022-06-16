@@ -35,3 +35,4 @@ from . import dataset
 from . import histogramming
 from . import utils
 from . import sample
+from . import training

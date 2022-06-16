@@ -344,10 +344,11 @@ def get_feature_vector(event, include_signal_truth=False):
 
     # MUST BE IN SYNC WITH THE VAR "FEATURE_TITLES" BELOW
     X = [
-        subl.ptD, subl.axismajor, subl.multiplicity, subl.rt, subl.mt,
-        subl.girth, subl.axisminor, subl.metdphi,  
+        subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
         subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
-        subl.metdphi, subl.pt, subl.eta, subl.phi, subl.energy
+        subl.metdphi,
+        subl.pt, subl.eta, subl.phi, subl.energy
+        subl.rt, subl.mt
         ]
     
     if include_signal_truth:
@@ -356,10 +357,11 @@ def get_feature_vector(event, include_signal_truth=False):
     return Status.PASSED, ((X, X_truth) if include_signal_truth else X)
 
 FEATURE_TITLES = [
-    'ptd', 'axismajor', 'multiplicity', 'rt', 'mt',
-    'girth', 'axisminor', 'metdphi',
+    'girth', 'ptD', 'axismajor', 'axisminor',
     'ecfM2b1', 'ecfD2b1', 'ecfC2b1', 'ecfN2b2',
-    'metdphi', 'pt', 'eta', 'phi', 'energy'
+    'metdphi',
+    'pt', 'eta', 'phi', 'energy',
+    'rt', 'mt'
     ]
 
 

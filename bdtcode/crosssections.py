@@ -18,6 +18,7 @@ ttjets_xs = {
     'TTJets'                              : 831.76,
     }
 qcd_xs = {
+    'QCD_Pt_170to300_TuneCP5'   : 103700.0,
     'QCD_Pt_300to470_TuneCP5'   : 6832.0,
     'QCD_Pt_470to600_TuneCP5'   : 552.1,
     'QCD_Pt_600to800_TuneCP5'   : 156.7,
@@ -28,6 +29,7 @@ qcd_xs = {
     'QCD_Pt_2400to3200_TuneCP5' : 0.005237,
     'QCD_Pt_3200toInf_TuneCP5' : 0.0001352,
     }
+for key, value in qcd_xs.copy().items(): qcd_xs[key.replace('_TuneCP5', '')] = value
 wjets_xs = {
     'WJetsToLNu_HT-70To100_TuneCP5'    : 1264.0 * 1.139,
     'WJetsToLNu_HT-100To200_TuneCP5'   : 1393.0,
