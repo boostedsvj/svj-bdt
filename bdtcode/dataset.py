@@ -441,6 +441,9 @@ def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_nam
         except Exception as e:
             bdtcode.logger.error(f'Error processing {rootfile}; Skipping. Error was: ' + repr(e))
 
+    X = vstack(X)
+    X_histogram = vstack(X_histogram)
+
     # Now get the scores
     bdtcode.logger.info(f'Applying bdt on {X.shape[0]} events')
     scores = model.predict_proba(del_features(X, skip_features))[:,1]
@@ -450,9 +453,9 @@ def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_nam
     bdtcode.logger.info(f'Saving {X.shape[0]} entries to {outfile}')
     np.savez(
         outfile,
-        X=vstack(X), titles=FEATURE_TITLES,
+        X=X, titles=FEATURE_TITLES,
         scores=scores,
-        X_histogram=vstack(X_histogram), titles_histogram=HISTOGRAMMING_VARIABLE_TITLES
+        X_histogram=X_histogram, titles_histogram=HISTOGRAMMING_VARIABLE_TITLES
         )
 
 
