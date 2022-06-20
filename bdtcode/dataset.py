@@ -395,13 +395,24 @@ def vstack(X, *args, **kwargs):
 
 
 def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_name=None):
+    """
+    Applies a BDT (in `model`) on all events in `rootfiles`, and saves output in `outfile` (.npz).
+
+    `rootfiles` can be a list of paths or just a single path to a rootfile, and may be remote.
+
+    `dataset_name` should indicate what type of ttbar sample this is, and should be an empty string
+    for non-ttbar samples.
+
+    `skip_features` should be a list of features that were not used in the training of the BDT.
+    """
+    rootfiles = uptools.format_rootfiles(rootfiles)
     cutflow = CutFlowColumn()
-    trigger_evaluator = TriggerEvaluator(uptools.format_rootfiles(rootfile)[0])
+    trigger_evaluator = TriggerEvaluator(rootfiles[0])
 
     X = []
     X_histogram = []
 
-    for rootfile in uptools.format_rootfiles(rootfiles):
+    for rootfile in rootfiles:
         bdtcode.logger.info(f'Start processing {rootfile}')
         try:
             for event in uptools.iter_events(rootfile):
