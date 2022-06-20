@@ -313,9 +313,20 @@ class Status:
     PASSED = 1
     FAILED_PRESEL = 2
     FAILED_SIGNAL_TRUTH = 3
+    FAILED_TTSTITCH = 4
 
-def get_feature_vector(event, include_signal_truth=False):
-    if not preselection(event): return Status.FAILED_PRESEL, None
+def get_feature_vector(
+    event, include_signal_truth=False, check_preselection=True, check_ttstitch=False,
+    cutflow=None, trigger_evaluator=None, dataset_name=None
+    ):
+    if check_ttstitch:
+        if dataset_name is None:
+            raise Exception('Pass argument dataset_name to perform the ttstitch filter')
+        if not ttstitch_selection(event, dataset_name, cutflow):
+            return Status.FAILED_TTSTITCH, None
+
+    if check_preselection and not preselection(event, cutflow, trigger_evaluator):
+        return Status.FAILED_PRESEL, None
 
     subl = get_subl(event)
 
@@ -364,6 +375,83 @@ FEATURE_TITLES = [
     'rt', 'mt'
     ]
 
+def del_features(X, names):
+    """
+    Deletes columns from a feature array by name
+    """
+    remove_indices = [bdtcode.dataset.FEATURE_TITLES.index(name) for name in names]
+    all_indices = np.arange(len(FEATURE_TITLES))
+    filtered_indices = all_indices[~np.isin(all_indices, remove_indices)]
+    return X[:,filtered_indices]
+
+
+
+def vstack(X, *args, **kwargs):
+    """
+    Wrapper around np.vstack that doesn't crash on empty lists
+    """
+    return X if X == [] else np.vstack(X, *args, **kwargs)
+
+
+
+def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_name=None):
+    cutflow = CutFlowColumn()
+    trigger_evaluator = TriggerEvaluator(uptools.format_rootfiles(rootfile)[0])
+
+    X = []
+    X_histogram = []
+
+    for rootfile in uptools.format_rootfiles(rootfiles):
+        bdtcode.logger.info(f'Start processing {rootfile}')
+        try:
+            for event in uptools.iter_events(rootfile):
+                cutflow.plus_one('total')
+                status, vector = get_feature_vector(
+                    event, include_signal_truth=False,
+                    check_preselection=True, check_ttstitch=True, cutflow=cutflow,
+                    trigger_evaluator=trigger_evaluator,
+                    dataset_name=dataset_name
+                    )
+                if status != Status.PASSED: continue
+                X.append(vector)
+
+                # Get some histogramming variables
+                subl = get_subl(event)        
+                mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
+
+                # TO BE KEPT IN SYNC WITH HISTOGRAMMING_VARIABLE_TITLES BELOW
+                X_histogram.append([
+                    calculate_mass(subl), mt, rt,
+                    subl.energy, subl.pt, subl.eta, subl.phi,
+                    event[b'MET'], event[b'METPhi']
+                    ])
+        except IndexError:
+            bdtcode.logger.error(f'Problem with {rootfile}; proceeding with {X.shape[0]} good entries')
+        except Exception as e:
+            bdtcode.logger.error(f'Error processing {rootfile}; Skipping. Error was: ' + repr(e))
+
+    # Now get the scores
+    bdtcode.logger.info(f'Applying bdt on {X.shape[0]} events')
+    scores = model.predict_proba(del_features(X, skip_features))[:,1]
+
+    outdir = osp.abspath(osp.dirname(outfile))
+    if not osp.isdir(outdir): os.makedirs(outdir)
+    bdtcode.logger.info(f'Saving {X.shape[0]} entries to {outfile}')
+    np.savez(
+        outfile,
+        X=vstack(X), titles=FEATURE_TITLES,
+        scores=scores,
+        X_histogram=vstack(X_histogram), titles_histogram=HISTOGRAMMING_VARIABLE_TITLES
+        )
+
+
+# TO BE KEPT IN SYNC WITH ORDER OF VARIABLES IN apply_bdt()
+HISTOGRAMMING_VARIABLE_TITLES = [
+    'mass', 'mt', 'rt',
+    'energy', 'pt', 'eta', 'phi',
+    'met', 'metphi'
+    ]
+
 
 def make_feature_npz_signal(rootfiles, outfile=None):
     """
@@ -393,7 +481,7 @@ def make_feature_npz_signal(rootfiles, outfile=None):
         outdir = osp.abspath(osp.dirname(outfile))
         if not osp.isdir(outdir): os.makedirs(outdir)
         bdtcode.logger.info(f'Saving {n_passed} entries to {outfile}')
-        np.savez(outfile, X=np.vstack(X), X_truth=np.vstack(X_truth), titles=FEATURE_TITLES)
+        np.savez(outfile, X=vstack(X), X_truth=vstack(X_truth), titles=FEATURE_TITLES)
 
     return X, X_truth
 
@@ -422,7 +510,7 @@ def make_feature_npzs_bkg(rootfiles, outfile):
 
     if not osp.isdir(osp.abspath(osp.dirname(outfile))): os.makedirs(osp.abspath(osp.dirname(outfile)))
     bdtcode.logger.info(f'Saving {n_passed} entries to {outfile}')
-    np.savez(outfile, X=np.vstack(X), titles=FEATURE_TITLES)
+    np.savez(outfile, X=vstack(X), titles=FEATURE_TITLES)
 
 
 

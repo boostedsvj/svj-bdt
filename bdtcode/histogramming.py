@@ -9,6 +9,7 @@ import uptools
 import warnings
 uptools.logger.setLevel(logging.WARNING)
 
+import bdtcode
 from .dataset import TriggerEvaluator, preselection, get_subl, calculate_mt_rt, CutFlowColumn, is_array, ttstitch_selection, calculate_mass
 from .utils import try_import_ROOT, catchtime
 

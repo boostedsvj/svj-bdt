@@ -30,6 +30,16 @@ logger = setup_logger()
 def debug(flag=True):
     logger.setLevel(logging.DEBUG if flag else logging.INFO)
 
+def set_mpl_fontsize(small=16, medium=20, large=24):
+    import matplotlib.pyplot as plt
+    plt.rc('font', size=small)        # controls default text sizes
+    plt.rc('axes', titlesize=small)   # fontsize of the axes title
+    plt.rc('axes', labelsize=medium)  # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=small)  # fontsize of the tick labels
+    plt.rc('ytick', labelsize=small)  # fontsize of the tick labels
+    plt.rc('legend', fontsize=small)  # legend fontsize
+    plt.rc('figure', titlesize=large) # fontsize of the figure title
+
 from . import crosssections
 from . import dataset
 from . import histogramming

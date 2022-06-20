@@ -129,6 +129,7 @@ def train_entrypoint():
     from sklearn.metrics import confusion_matrix, roc_curve, roc_auc_score, auc
 
     X, y, weights = get_X()
+    X = bdtcode.dataset.del_features(X, ['mt', 'rt']) # Do not include mt and rt as training variables
     (
         X_train, X_test,
         y_train, y_test,
@@ -173,6 +174,39 @@ def train_entrypoint():
 
 
 
+def check_sculpting():
+    import xgboost as xgb
+    model = xgb.XGBClassifier()
+    model.load_model('svjbdt_Jun17.json')
+
+    X = get_bkg_X_weighted(50000)
+    mt = X[:,bdtcode.dataset.FEATURE_TITLES.index('mt')]
+    X = bdtcode.dataset.del_features(X, ['mt', 'rt'])
+    scores = model.predict_proba(X)[:,1]
+
+    import matplotlib.pyplot as plt
+    bdtcode.set_mpl_fontsize()
+
+    for density in [True, False]:
+        fig = plt.figure(figsize=(10,10))
+        ax = fig.gca()
+        bins = np.linspace(0., 750., 30)
+        ax.hist(mt, label='no cut', bins=bins, density=density, histtype=u'step')
+        for score in .1*np.arange(1, 10):
+            ax.hist(mt[scores > score], bins=bins, label=f'BDT>{score:.1}', density=density, histtype=u'step')
+        ax.legend()
+        ax.set_ylabel('Count')
+        ax.set_xlabel(r'$M_{T}$ (GeV)')
+        plt.savefig(f'sculpting{"_normed" if density else ""}.png', bbox_inches='tight')
+
+
+    
+
+
+
+
+
+    
 
     
 
