@@ -444,13 +444,15 @@ def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_nam
     X = vstack(X)
     X_histogram = vstack(X_histogram)
 
+    n_events = X.shape[0]
+
     # Now get the scores
-    bdtcode.logger.info(f'Applying bdt on {X.shape[0]} events')
-    scores = model.predict_proba(del_features(X, skip_features))[:,1]
+    bdtcode.logger.info(f'Applying bdt on {n_events} events')
+    scores = model.predict_proba(del_features(X, skip_features))[:,1] if n_events else []
 
     outdir = osp.abspath(osp.dirname(outfile))
     if not osp.isdir(outdir): os.makedirs(outdir)
-    bdtcode.logger.info(f'Saving {X.shape[0]} entries to {outfile}')
+    bdtcode.logger.info(f'Saving {n_events} entries to {outfile}')
     np.savez(
         outfile,
         X=X, titles=FEATURE_TITLES,
