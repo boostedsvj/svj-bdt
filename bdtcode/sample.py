@@ -133,13 +133,16 @@ class Sample:
     def ttstitch_efficiency(self):
         return self.n_mc / self.d['total']
 
-    def nevents_after_preselection(self, lumi=137.2*1e3):
+    #def nevents_after_preselection(self, lumi=137.2*1e3):
+    def nevents_after_preselection(self, lumi=14.027*1e3): #data 2018 PreHEM
         return self.crosssection * lumi * self.preselection_efficiency * self.genjetpt_efficiency
 
-    def nevents_after_bdt(self, min_score=None, lumi=137.2*1e3):
+    #def nevents_after_bdt(self, min_score=None, lumi=137.2*1e3):
+    def nevents_after_bdt(self, min_score=None, lumi=14.027*1e3): #data 2018 PreHEM
         return self.nevents_after_preselection(lumi) * self.bdt_efficiency(min_score)
         
-    def nevents_after_allcuts(self, min_score=None, lumi=137.2*1e3, **better_resolution_selectors):
+    #def nevents_after_allcuts(self, min_score=None, lumi=137.2*1e3, **better_resolution_selectors):
+    def nevents_after_allcuts(self, min_score=None, lumi=14.027*1e3, **better_resolution_selectors): #data 2018 PreHEM
         return self.nevents_after_bdt(min_score, lumi) * self.other_selection_efficiency(**better_resolution_selectors)
 
     def __len__(self):
