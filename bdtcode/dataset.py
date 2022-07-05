@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import os, os.path as osp, glob
 import numpy as np
 import tqdm
@@ -136,7 +137,13 @@ def calculate_massmetpzm(jets, met, metphi):
 
 class CutFlowColumn:
     def __init__(self) -> None:
-        self.counts = {}
+        self.counts = OrderedDict()
+
+    def keys(self):
+        return list(self.counts.keys())
+
+    def values(self):
+        return list(self.counts.values())
 
     def plus_one(self, name):
         self.counts.setdefault(name, 0)
@@ -394,7 +401,7 @@ def vstack(X, *args, **kwargs):
 
 
 
-def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_name=None):
+def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_name=None, nmax=None):
     """
     Applies a BDT (in `model`) on all events in `rootfiles`, and saves output in `outfile` (.npz).
 
@@ -409,13 +416,17 @@ def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_nam
     cutflow = CutFlowColumn()
     trigger_evaluator = TriggerEvaluator(rootfiles[0])
 
+    if dataset_name is None:
+        dataset_name = '/'.join(rootfiles[0].split('/')[-3:])
+        bdtcode.logger.info(f'Using {dataset_name=}')
+
     X = []
     X_histogram = []
 
     for rootfile in rootfiles:
         bdtcode.logger.info(f'Start processing {rootfile}')
         try:
-            for event in uptools.iter_events(rootfile):
+            for event in uptools.iter_events(rootfile, nmax=nmax):
                 cutflow.plus_one('total')
                 status, vector = get_feature_vector(
                     event, include_signal_truth=False,
@@ -450,15 +461,20 @@ def apply_bdt(model, rootfiles, outfile, skip_features=['mt', 'rt'], dataset_nam
     bdtcode.logger.info(f'Applying bdt on {n_events} events')
     scores = model.predict_proba(del_features(X, skip_features))[:,1] if n_events else []
 
-    outdir = osp.abspath(osp.dirname(outfile))
-    if not osp.isdir(outdir): os.makedirs(outdir)
-    bdtcode.logger.info(f'Saving {n_events} entries to {outfile}')
-    np.savez(
-        outfile,
+    out_dct = dict(
         X=X, titles=FEATURE_TITLES,
         scores=scores,
-        X_histogram=X_histogram, titles_histogram=HISTOGRAMMING_VARIABLE_TITLES
+        X_histogram=X_histogram, titles_histogram=HISTOGRAMMING_VARIABLE_TITLES,
+        cutflow_titles = cutflow.keys(), cutflow_values = cutflow.values()
         )
+
+    if outfile is not None:
+        outdir = osp.abspath(osp.dirname(outfile))
+        if not osp.isdir(outdir): os.makedirs(outdir)
+        bdtcode.logger.info(f'Saving {n_events} entries to {outfile}')
+        np.savez(outfile, **out_dct)
+    
+    return out_dct
 
 
 # TO BE KEPT IN SYNC WITH ORDER OF VARIABLES IN apply_bdt()

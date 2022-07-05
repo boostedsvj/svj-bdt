@@ -57,6 +57,11 @@ def download_test_files():
             )
 
 
+class FakeModel:
+    def predict_proba(self, X, *args, **kwargs):
+        return np.random.rand(X.shape[0], 2)
+
+
 def test_testfiles():
     download_test_files()
     import uptools
@@ -123,3 +128,18 @@ def test_data_ntuple():
         print(dataset.calculate_massmetpz(subl, met, metphi))
         print(dataset.calculate_massmetpzm(subl, met, metphi))
         return
+
+def test_apply_bdt():
+    download_test_files()
+    bdtcode.do_ultra_legacy()
+    model = FakeModel()
+
+    d = dataset.apply_bdt(model, sig_rootfile, outfile=None, nmax=20)
+
+    assert 'scores' in d
+    assert 'cutflow_titles' in d
+    assert 'X' in d
+
+    assert d['X'].shape[0] == d['cutflow_values'][-1]
+    assert d['cutflow_values'][0] == 20
+    
