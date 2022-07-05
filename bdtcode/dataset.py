@@ -397,7 +397,7 @@ def vstack(X, *args, **kwargs):
     """
     Wrapper around np.vstack that doesn't crash on empty lists
     """
-    return X if X == [] else np.vstack(X, *args, **kwargs)
+    return np.array([]) if X == [] else np.vstack(X, *args, **kwargs)
 
 
 
