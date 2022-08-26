@@ -38,13 +38,23 @@ def get_scores(rootfile, model, dataset_name=''):
                 met = event[b'MET']
                 metphi = event[b'METPhi']
                 mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
-                lead_pt = event[b'JetsAK15.fCoordinates.fPt'][0] 
+                lead_pt = event[b'JetsAK15.fCoordinates.fPt'][0]
+                # adding metfilters as boolean
+                hbhenoise = event[b'HBHENoiseFilter']
+                hbheisonoise = event[b'HBHEIsoNoiseFilter']
+                eebadsc = event[b'eeBadScFilter']
+                ecalbadcalib = event[b'ecalBadCalibFilter'] if ul else b'ecalBadCalibReducedFilter']
+                badpfmuon = event[b'BadPFMuonFilter']
+                badchargedcand = event[b'BadChargedCandidateFilter']
+                globsupertighthalo = event[b'globalSuperTightHalo2016Filter'] 
                 X.append([
                     subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
-                    subl.metdphi
+                    subl.metdphi,
+                    # adding metfilters as boolean
+                    hbhenoise, hbheisonoise, eebadsc, ecalbadcalib, badpfmuon, badchargedcand, globsupertighthalo
                     ])
-                X_histogram.append([mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, subl.mass, metphi, lead_pt])
+                X_histogram.append([mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, subl.mass, metphi, lead_pt, hbhenoise, hbheisonoise, eebadsc, ecalbadcalib, badpfmuon, badchargedcand, globsupertighthalo])
         except IndexError:
             print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
         except Exception as e:
@@ -53,7 +63,7 @@ def get_scores(rootfile, model, dataset_name=''):
     print(f'Processed {cutflow["total"]} events in {t:.3f} seconds ({t/60.:.3f} min)')
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
-        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt']}
+        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', , 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo']}
         d.update(**cutflow.counts)
         d['wtime'] = t
         return d
@@ -64,7 +74,7 @@ def get_scores(rootfile, model, dataset_name=''):
     return dict(
         score=score,
         wtime = t,
-        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt'])},
+        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo'])},
         **cutflow.counts
         )
 

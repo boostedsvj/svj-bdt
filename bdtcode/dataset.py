@@ -257,7 +257,10 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
         return False
     cut_flow.plus_one('nleptons==0')
 
-    if any(event[b] == 0 for b in [
+
+    # comment out metfilter 
+    # add metfilters as booleans in histogramming.py 
+    '''if any(event[b] == 0 for b in [
         b'HBHENoiseFilter',
         b'HBHEIsoNoiseFilter',
         b'eeBadScFilter',
@@ -266,7 +269,7 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
         b'BadChargedCandidateFilter',
         b'globalSuperTightHalo2016Filter',
         ]):
-        return False
+        return False'''
     cut_flow.plus_one('metfilter')
     cut_flow.plus_one('preselection')
     return True
