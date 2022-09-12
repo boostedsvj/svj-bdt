@@ -63,7 +63,7 @@ def get_scores(rootfile, model, dataset_name=''):
     print(f'Processed {cutflow["total"]} events in {t:.3f} seconds ({t/60.:.3f} min)')
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
-        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', , 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo']}
+        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo']}
         d.update(**cutflow.counts)
         d['wtime'] = t
         return d
