@@ -50,9 +50,7 @@ def get_scores(rootfile, model, dataset_name=''):
                 X.append([
                     subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
-                    subl.metdphi,
-                    # adding metfilters as boolean
-                    hbhenoise, hbheisonoise, eebadsc, ecalbadcalib, badpfmuon, badchargedcand, globsupertighthalo
+                    subl.metdphi
                     ])
                 X_histogram.append([mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, subl.mass, metphi, lead_pt, hbhenoise, hbheisonoise, eebadsc, ecalbadcalib, badpfmuon, badchargedcand, globsupertighthalo])
         except IndexError:
