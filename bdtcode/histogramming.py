@@ -46,9 +46,10 @@ def get_scores(rootfile, model, dataset_name=''):
                 ecalbadcalib = event[b'ecalBadCalibFilter']
                 badpfmuon = event[b'BadPFMuonFilter']
                 badchargedcand = event[b'BadChargedCandidateFilter']
-                globsupertighthalo = event[b'globalSuperTightHalo2016Filter'] 
-                n_muons = event(b'Muons')
-                n_electrons = event(b'Electrons')
+                globsupertighthalo = event[b'globalSuperTightHalo2016Filter']
+                # adding n_leptons as boolean 
+                n_muons = event[b'Muons']
+                n_electrons = event[b'Electrons']
                 X.append([
                     subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
