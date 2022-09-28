@@ -249,9 +249,14 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
             return False
     cut_flow.plus_one('ecf>0')
 
-    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.0:
+    #if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.0:
+        #return False
+    #cut_flow.plus_one('rtx>1.0')
+
+    # control region rt<1.15
+    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.0 or np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) > 1.15:
         return False
-    cut_flow.plus_one('rtx>1.0')
+    cut_flow.plus_one('rtx_CR')
 
 
     # comment out nleptons==0
@@ -264,7 +269,7 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
 
     # comment out metfilter 
     # add metfilters as booleans in histogramming.py 
-    '''if any(event[b] == 0 for b in [
+    if any(event[b] == 0 for b in [
         b'HBHENoiseFilter',
         b'HBHEIsoNoiseFilter',
         b'eeBadScFilter',
@@ -273,7 +278,7 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
         b'BadChargedCandidateFilter',
         b'globalSuperTightHalo2016Filter',
         ]):
-        return False'''
+        return False
     cut_flow.plus_one('metfilter')
     cut_flow.plus_one('preselection')
     return True
