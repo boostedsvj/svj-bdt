@@ -31,8 +31,8 @@ def get_scores(rootfile, model, dataset_name=''):
                 cutflow.plus_one('total')
                 if not ttstitch_selection(event, dataset_name, cutflow): continue
                 if not preselection(event, cutflow, trigger_evaluator=trigger_evaluator): continue
-                if event[b'RunNum'] < 319077: continue # for Run2018B PostHEM
-                #if event[b'RunNum'] >= 319077: continue # for Run2018B PreHEM
+                #if event[b'RunNum'] < 319077: continue # for Run2018B PostHEM
+                if event[b'RunNum'] >= 319077: continue # for Run2018B PreHEM
                 subl = get_subl(event)
                 subl.mass = calculate_mass(subl)
                 met = event[b'MET']
@@ -128,7 +128,7 @@ def combine_ds(ds):
     return combined
 
 
-ef combine_npzs(npzs):
+def combine_npzs(npzs):
     """
     Like combine_ds, but instead takes an iterable of npz files
     """
