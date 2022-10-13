@@ -59,7 +59,10 @@ def get_scores(rootfile, model, dataset_name=''):
                     mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, 
                     subl.mass, metphi, lead_pt, hbhenoise, hbheisonoise, 
                     eebadsc, ecalbadcalib, badpfmuon, badchargedcand, 
-                    globsupertighthalo, n_muons, n_electrons])
+                    globsupertighthalo, n_muons, n_electrons,
+		    subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
+                    subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
+                    subl.metdphi])
         except IndexError:
             print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
         except Exception as e:
@@ -68,7 +71,7 @@ def get_scores(rootfile, model, dataset_name=''):
     print(f'Processed {cutflow["total"]} events in {t:.3f} seconds ({t/60.:.3f} min)')
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
-        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo', 'n_muons', 'n_electrons']}
+        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo', 'n_muons', 'n_electrons', 'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 'subl.metdphi']}
         d.update(**cutflow.counts)
         d['wtime'] = t
         return d
@@ -79,7 +82,7 @@ def get_scores(rootfile, model, dataset_name=''):
     return dict(
         score=score,
         wtime = t,
-        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo', 'n_muons', 'n_electrons'])},
+        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo', 'n_muons', 'n_electrons', 'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 'subl.metdphi'])},
         **cutflow.counts
         )
 

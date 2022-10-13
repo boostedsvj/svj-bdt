@@ -249,21 +249,19 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
             return False
     cut_flow.plus_one('ecf>0')
 
-    #if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.0:
-        #return False
-    #cut_flow.plus_one('rtx>1.0')
+    # no rtx cut for control region study
+    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.0:
+        return False
+    cut_flow.plus_one('rtx>1.0')
 
     # control region rt<1.15
-    if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.0 or np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) > 1.15:
+    '''if np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) < 1.0 or np.sqrt(1.+event[b'MET']/event[b'JetsAK15.fCoordinates.fPt'][1]) > 1.15:
         return False
-    cut_flow.plus_one('rtx_CR')
+    cut_flow.plus_one('rtx_CR')'''
 
 
-    # comment out nleptons==0
-    # add n-muons and n_electrons in histogramming.py
-    # to check wjet, zjets and ttjets
-    '''if event[b'Muons'] > 0 or event[b'Electrons'] > 0:
-        return False'''
+    if event[b'Muons'] > 0 or event[b'Electrons'] > 0:
+        return False
     cut_flow.plus_one('nleptons==0')
 
 
