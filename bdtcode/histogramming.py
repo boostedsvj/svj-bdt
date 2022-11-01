@@ -38,7 +38,11 @@ def get_scores(rootfile, model, dataset_name=''):
                 met = event[b'MET']
                 metphi = event[b'METPhi']
                 mt, rt = calculate_mt_rt(subl, event[b'MET'], event[b'METPhi'])
+                # adding leading jets info
                 lead_pt = event[b'JetsAK15.fCoordinates.fPt'][0]
+                lead_phi = event[b'JetsAK15.fCoordinates.fPhi'][0]
+                lead_eta = event[b'JetsAK15.fCoordinates.fEta'][0]
+
                 # adding metfilters as boolean
                 hbhenoise = event[b'HBHENoiseFilter']
                 hbheisonoise = event[b'HBHEIsoNoiseFilter']
@@ -57,7 +61,7 @@ def get_scores(rootfile, model, dataset_name=''):
                     ])
                 X_histogram.append([
                     mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, 
-                    subl.mass, metphi, lead_pt, hbhenoise, hbheisonoise, 
+                    subl.mass, metphi, lead_pt, lead_phi, lead_eta, hbhenoise, hbheisonoise, 
                     eebadsc, ecalbadcalib, badpfmuon, badchargedcand, 
                     globsupertighthalo, n_muons, n_electrons,
 		    subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
@@ -71,7 +75,7 @@ def get_scores(rootfile, model, dataset_name=''):
     print(f'Processed {cutflow["total"]} events in {t:.3f} seconds ({t/60.:.3f} min)')
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
-        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo', 'n_muons', 'n_electrons', 'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 'subl.metdphi']}
+        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'lj_phi', 'lj_eta', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo', 'n_muons', 'n_electrons', 'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 'subl.metdphi']}
         d.update(**cutflow.counts)
         d['wtime'] = t
         return d
