@@ -2,7 +2,8 @@ import re, uuid, numpy as np
 from array import array
 from typing import List
 
-from . import histogramming as H
+#from . import histogramming as H
+from . import histogramming_noscore as H
 from .utils import *
 from . import crosssections
 
