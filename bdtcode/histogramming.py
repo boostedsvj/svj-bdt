@@ -57,7 +57,7 @@ def get_scores(rootfile, model, dataset_name=''):
                 X.append([
                     subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
-                    subl.metdphi
+                    subl.metdphi, subl.phi
                     ])
                 X_histogram.append([
                     mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, 
@@ -72,7 +72,6 @@ def get_scores(rootfile, model, dataset_name=''):
     print(f'Processed {cutflow["total"]} events in {t:.3f} seconds ({t/60.:.3f} min)')
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
-        #d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'lj_phi', 'lj_eta', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo', 'n_muons', 'n_electrons', 'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 'subl.metdphi']}
         d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'lj_phi', 'lj_eta', 
                'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2']}
         d.update(**cutflow.counts)
@@ -85,9 +84,7 @@ def get_scores(rootfile, model, dataset_name=''):
     return dict(
         score=score,
         wtime = t,
-        #**{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'hbhenoise', 'hbheisonoise', 'eebadsc', 'ecalbadcalib', 'badpfmuon', 'badchargedcand', 'globsupertighthalo', 'n_muons', 'n_electrons', 'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 'subl.metdphi'])},
-        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt',  'lj_phi', 'lj_eta', 
-                    'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2'])},
+        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt',  'lj_phi', 'lj_eta', 'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2'])},
         **cutflow.counts
         )
 
