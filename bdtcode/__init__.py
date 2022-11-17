@@ -9,6 +9,5 @@ def do_ultra_legacy(flag=True):
 from . import crosssections
 from . import dataset
 from . import histogramming
-from . import histogramming_noscore
 from . import utils
 from . import sample
