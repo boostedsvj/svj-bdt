@@ -31,7 +31,8 @@ def get_scores(rootfile, model, dataset_name=''):
                 cutflow.plus_one('total')
                 if not ttstitch_selection(event, dataset_name, cutflow): continue
                 if not preselection(event, cutflow, trigger_evaluator=trigger_evaluator): continue
-                if event[b'RunNum'] < 319077: continue # for Run2018B PostHEM
+                # run on data
+                #if event[b'RunNum'] < 319077: continue # for Run2018B PostHEM
                 #if event[b'RunNum'] >= 319077: continue # for Run2018B PreHEM
                 subl = get_subl(event)
                 subl.mass = calculate_mass(subl)
