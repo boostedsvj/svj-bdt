@@ -281,6 +281,32 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
     cut_flow.plus_one('preselection')
     return True
 
+def get_ak4_subl(event):
+    """
+    Returns subleading jet
+    """
+    jets = FourVectorArray(
+        event[b'Jets.fCoordinates.fPt'],
+        event[b'Jets.fCoordinates.fEta'],
+        event[b'Jets.fCoordinates.fPhi'],
+        event[b'Jets.fCoordinates.fE'],
+        )
+    ak4_subl = jets[1]
+    return ak4_subl
+
+def get_ak4_lead(event):
+    """
+    Returns subleading jet
+    """
+    jets = FourVectorArray(
+        event[b'Jets.fCoordinates.fPt'],
+        event[b'Jets.fCoordinates.fEta'],
+        event[b'Jets.fCoordinates.fPhi'],
+        event[b'Jets.fCoordinates.fE'],
+        )
+    ak4_lead = jets[0]
+    return ak4_lead
+
 
 def get_subl(event):
     """

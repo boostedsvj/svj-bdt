@@ -9,7 +9,7 @@ import uptools
 import warnings
 uptools.logger.setLevel(logging.WARNING)
 
-from .dataset import TriggerEvaluator, preselection, get_subl, calculate_mt_rt, CutFlowColumn, is_array, ttstitch_selection, calculate_mass
+from .dataset import TriggerEvaluator, preselection, get_subl, get_ak4_subl, get_ak4_lead, calculate_mt_rt, CutFlowColumn, is_array, ttstitch_selection, calculate_mass
 from .utils import try_import_ROOT, catchtime
 
 
@@ -43,27 +43,21 @@ def get_scores(rootfile, model, dataset_name=''):
                 lead_phi = event[b'JetsAK15.fCoordinates.fPhi'][0]
                 lead_eta = event[b'JetsAK15.fCoordinates.fEta'][0]
 
-                # adding metfilters as boolean
-                hbhenoise = event[b'HBHENoiseFilter']
-                hbheisonoise = event[b'HBHEIsoNoiseFilter']
-                eebadsc = event[b'eeBadScFilter']
-                ecalbadcalib = event[b'ecalBadCalibFilter']
-                badpfmuon = event[b'BadPFMuonFilter']
-                badchargedcand = event[b'BadChargedCandidateFilter']
-                globsupertighthalo = event[b'globalSuperTightHalo2016Filter']
-                # adding n_leptons as boolean 
-                n_muons = event[b'Muons']
-                n_electrons = event[b'Electrons']
+                # adding ak4 jets leading and subleading jets
+                ak4_lead = get_ak4_lead(event)
+                ak4_subl = get_ak4_subl(event)
+
                 X.append([
                     subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
-                    subl.metdphi, subl.phi
+                    subl.metdphi
                     ])
                 X_histogram.append([
                     mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, 
                     subl.mass, metphi, lead_pt, lead_phi, lead_eta,
 		    subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
-                    subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2])
+                    subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
+                    ak4_lead.eta, ak4_lead.phi, ak4_lead.pt, ak4_subl.eta, ak4_subl.phi, ak4_subl.pt])
         except IndexError:
             print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
         except Exception as e:
@@ -73,7 +67,8 @@ def get_scores(rootfile, model, dataset_name=''):
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
         d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'lj_phi', 'lj_eta', 
-               'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2']}
+               'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2',
+                'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt']}
         d.update(**cutflow.counts)
         d['wtime'] = t
         return d
@@ -84,7 +79,10 @@ def get_scores(rootfile, model, dataset_name=''):
     return dict(
         score=score,
         wtime = t,
-        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt',  'lj_phi', 'lj_eta', 'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2'])},
+        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi',
+								  'lj_pt',  'lj_phi', 'lj_eta', 'subl.girth', 'subl.ptD', 'subl.axismajor', 
+								  'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 
+								  'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt'])},
         **cutflow.counts
         )
 
