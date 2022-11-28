@@ -10,4 +10,4 @@ from . import crosssections
 from . import dataset
 from . import histogramming_PostHEM
 from . import utils
-from . import sample
+from . import sample_posthem
