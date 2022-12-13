@@ -44,8 +44,8 @@ def get_scores(rootfile, model, dataset_name=''):
                 lead_phi = event[b'JetsAK15.fCoordinates.fPhi'][0]
                 lead_eta = event[b'JetsAK15.fCoordinates.fEta'][0]
                 ak8_pt   = event[b'JetsAK8.fCoordinates.fPt'][0]
-		muons = event[b'Muons']
-		electrons = event[b'Electrons']
+                muons = event[b'Muons']
+                electrons = event[b'Electrons']
 
                 # adding ak4 jets leading and subleading jets
                 ak4_lead = get_ak4_lead(event)
