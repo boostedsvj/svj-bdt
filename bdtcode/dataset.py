@@ -230,15 +230,15 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
         return False
     cut_flow.plus_one('eta<2.4')
 
-    if len(event[b'JetsAK8.fCoordinates.fPt']) == 0 or event[b'JetsAK8.fCoordinates.fPt'][0] < 550.:
-        return False
+    #if len(event[b'JetsAK8.fCoordinates.fPt']) == 0 or event[b'JetsAK8.fCoordinates.fPt'][0] < 550.:
+    #    return False
     cut_flow.plus_one('jetak8>550')
 
     if trigger_evaluator is not None and not(trigger_evaluator(event)):
         return False
     cut_flow.plus_one('trigger')
 
-    for ecf in [
+    '''for ecf in [
         b'JetsAK15_ecfC2b1', b'JetsAK15_ecfD2b1',
         b'JetsAK15_ecfM2b1', b'JetsAK15_ecfN2b2',
         ]:
@@ -246,7 +246,7 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
             if event[ecf][1] < 0.:
                 return False
         except IndexError:
-            return False
+            return False'''
     cut_flow.plus_one('ecf>0')
 
     # no rtx cut for control region study
@@ -260,14 +260,14 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
     cut_flow.plus_one('rtx_CR')'''
 
 
-    if event[b'Muons'] > 0 or event[b'Electrons'] > 0:
-        return False
+    #if event[b'Muons'] > 0 or event[b'Electrons'] > 0:
+    #    return False
     cut_flow.plus_one('nleptons==0')
 
 
     # comment out metfilter 
     # add metfilters as booleans in histogramming.py 
-    if any(event[b] == 0 for b in [
+    '''if any(event[b] == 0 for b in [
         b'HBHENoiseFilter',
         b'HBHEIsoNoiseFilter',
         b'eeBadScFilter',
@@ -276,7 +276,7 @@ def preselection(event, cut_flow=None, trigger_evaluator=None, ul=None):
         b'BadChargedCandidateFilter',
         b'globalSuperTightHalo2016Filter',
         ]):
-        return False
+        return False'''
     cut_flow.plus_one('metfilter')
     cut_flow.plus_one('preselection')
     return True
