@@ -94,14 +94,19 @@ def get_scores(rootfile, model, dataset_name=''):
     score = model.predict_proba(np.array(X))[:,1]
     # Prepare and dump to file
     X_histogram = np.array(X_histogram)
+    '''return dict(
+        score=score,
+        wtime = t,
+        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'met', 'phi', 'eta', 'metphi',
+                                                                  'lj_pt',  'lj_phi', 'lj_eta', 
+                                                                  'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 
+                                                                  'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt',
+                                                                  'muons', 'electrons', 'ak8_pt'])},
+        **cutflow.counts
+        )'''
     return dict(
         score=score,
         wtime = t,
-        '''**{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi',
-								  'lj_pt',  'lj_phi', 'lj_eta', 'subl.girth', 'subl.ptD', 'subl.axismajor', 
-								  'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 
-								  'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt',
-								  'muons', 'electrons', 'ak8_pt'])},'''
 
         **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'met', 'phi', 'eta', 'metphi',
                                                                   'lj_pt',  'lj_phi', 'lj_eta', 
