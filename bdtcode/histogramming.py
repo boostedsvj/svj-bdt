@@ -56,13 +56,21 @@ def get_scores(rootfile, model, dataset_name=''):
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
                     subl.metdphi
                     ])
-                X_histogram.append([
+                '''X_histogram.append([
                     mt, rt, subl.pt, subl.energy, met, subl.phi, subl.eta, 
                     subl.mass, metphi, lead_pt, lead_phi, lead_eta,
 		    subl.girth, subl.ptD, subl.axismajor, subl.axisminor,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
                     ak4_lead.eta, ak4_lead.phi, ak4_lead.pt, ak4_subl.eta, ak4_subl.phi, ak4_subl.pt,
-		    muons, electrons, ak8_pt])
+		    muons, electrons, ak8_pt])'''
+
+                X_histogram.append([
+                    mt, rt, subl.pt, met, subl.phi, subl.eta, 
+                    metphi, lead_pt, lead_phi, lead_eta,
+                    subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
+                    ak4_lead.eta, ak4_lead.phi, ak4_lead.pt, ak4_subl.eta, ak4_subl.phi, ak4_subl.pt,
+                    muons, electrons, ak8_pt])
+
         except IndexError:
             print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
         except Exception as e:
@@ -71,9 +79,14 @@ def get_scores(rootfile, model, dataset_name=''):
     print(f'Processed {cutflow["total"]} events in {t:.3f} seconds ({t/60.:.3f} min)')
     if cutflow['preselection'] == 0:
         print(f'0/{cutflow["total"]} events passed the preselection for {rootfile}')
-        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'lj_phi', 'lj_eta', 
+        '''d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi', 'lj_pt', 'lj_phi', 'lj_eta', 
                'subl.girth', 'subl.ptD', 'subl.axismajor', 'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2',
-                'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt', 'muons', 'electrons', 'ak8_pt']}
+                'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt', 'muons', 'electrons', 'ak8_pt']}'''
+
+        d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'met', 'phi', 'eta', 'metphi', 'lj_pt', 'lj_phi', 'lj_eta', 
+               'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2',
+               'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt', 'muons', 'electrons', 'ak8_pt']}
+
         d.update(**cutflow.counts)
         d['wtime'] = t
         return d
@@ -84,11 +97,18 @@ def get_scores(rootfile, model, dataset_name=''):
     return dict(
         score=score,
         wtime = t,
-        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi',
+        '''**{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'energy', 'met', 'phi', 'eta', 'mass', 'metphi',
 								  'lj_pt',  'lj_phi', 'lj_eta', 'subl.girth', 'subl.ptD', 'subl.axismajor', 
 								  'subl.axisminor', 'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 
 								  'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt',
-								  'muons', 'electrons', 'ak8_pt'])},
+								  'muons', 'electrons', 'ak8_pt'])},'''
+
+        **{key: X_histogram[:,index] for index, key in enumerate(['mt', 'rt', 'pt', 'met', 'phi', 'eta', 'metphi',
+                                                                  'lj_pt',  'lj_phi', 'lj_eta', 
+                                                                  'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 
+                                                                  'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt',
+                                                                  'muons', 'electrons', 'ak8_pt'])},
+
         **cutflow.counts
         )
 
