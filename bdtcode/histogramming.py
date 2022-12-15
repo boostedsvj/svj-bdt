@@ -47,7 +47,7 @@ def get_scores(rootfile, model, dataset_name=''):
                 muons = event[b'Muons']
                 electrons = event[b'Electrons']
                 print('get zprime')
-                zprime = get_zprime(event)
+                #zprime = get_zprime(event)
                 z_mass = zprime.mass
                 z_pt = zprime.pt
                 z_phi = zprime.phi
