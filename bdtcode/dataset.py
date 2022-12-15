@@ -356,7 +356,7 @@ def get_zprime(event):
             )
         zprime = genparticles[genparticles.pdgid == 4900023]
         #if len(zprime) == 0: continue
-        zprime = zprime[0]
+        #zprime = zprime[0]
         return zprime
 
 def process_signal(rootfiles, outfile=None):
