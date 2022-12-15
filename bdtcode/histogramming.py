@@ -9,7 +9,7 @@ import uptools
 import warnings
 uptools.logger.setLevel(logging.WARNING)
 
-from .dataset import TriggerEvaluator, preselection, get_subl, get_ak4_subl, get_ak4_lead, calculate_mt_rt, CutFlowColumn, is_array, ttstitch_selection, calculate_mass
+from .dataset import TriggerEvaluator, preselection, get_subl, get_ak4_subl, get_ak4_lead, calculate_mt_rt, CutFlowColumn, is_array, ttstitch_selection, calculate_mass, get_zprime
 from .utils import try_import_ROOT, catchtime
 
 
@@ -46,7 +46,11 @@ def get_scores(rootfile, model, dataset_name=''):
                 ak8_pt   = event[b'JetsAK8.fCoordinates.fPt'][0]
                 muons = event[b'Muons']
                 electrons = event[b'Electrons']
-
+                zpart = get_zprime(event)
+                z_mass = zpart.mass
+                z_pt = zpart.pt
+                z_phi = zpart.phi
+                z_eta = zpart.eta
                 # adding ak4 jets leading and subleading jets
                 ak4_lead = get_ak4_lead(event)
                 ak4_subl = get_ak4_subl(event)
@@ -69,7 +73,7 @@ def get_scores(rootfile, model, dataset_name=''):
                     metphi, lead_pt, lead_phi, lead_eta,
                     subl.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
                     ak4_lead.eta, ak4_lead.phi, ak4_lead.pt, ak4_subl.eta, ak4_subl.phi, ak4_subl.pt,
-                    muons, electrons, ak8_pt])
+                    muons, electrons, ak8_pt, z_mass, z_pt, z_phi, z_eta])
 
         except IndexError:
             print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
@@ -85,7 +89,8 @@ def get_scores(rootfile, model, dataset_name=''):
 
         d = {k : np.array([]) for k in ['score', 'mt', 'rt', 'pt', 'met', 'phi', 'eta', 'metphi', 'lj_pt', 'lj_phi', 'lj_eta', 
                'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2',
-               'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt', 'muons', 'electrons', 'ak8_pt']}
+               'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt', 'muons', 'electrons', 'ak8_pt', 
+               'z_mass', 'z_pt', 'z_phi', 'z_eta']}
 
         d.update(**cutflow.counts)
         d['wtime'] = t
@@ -112,7 +117,7 @@ def get_scores(rootfile, model, dataset_name=''):
                                                                   'lj_pt',  'lj_phi', 'lj_eta', 
                                                                   'subl.ecfM2b1', 'subl.ecfD2b1', 'subl.ecfC2b1', 'subl.ecfN2b2', 
                                                                   'ak4_lead.eta', 'ak4_lead.phi', 'ak4_lead.pt', 'ak4_subl.eta', 'ak4_subl.phi', 'ak4_subl.pt',
-                                                                  'muons', 'electrons', 'ak8_pt'])},
+                                                                  'muons', 'electrons', 'ak8_pt', 'z_mass', 'z_pt', 'z_phi', 'z_eta'])},
 
         **cutflow.counts
         )

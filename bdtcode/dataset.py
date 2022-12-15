@@ -345,6 +345,20 @@ def get_subl(event):
     return subl
 
 
+def get_zprime(event):
+        genparticles = FourVectorArray(
+            event[b'GenParticles.fCoordinates.fPt'],
+            event[b'GenParticles.fCoordinates.fEta'],
+            event[b'GenParticles.fCoordinates.fPhi'],
+            event[b'GenParticles.fCoordinates.fE'],
+            pdgid=event[b'GenParticles_PdgId'],
+            status=event[b'GenParticles_Status']
+            )
+        zprime = genparticles[genparticles.pdgid == 4900023]
+        if len(zprime) == 0: continue
+        zprime = zprime[0]
+        return zprime
+
 def process_signal(rootfiles, outfile=None):
     n_total = 0
     n_presel = 0
