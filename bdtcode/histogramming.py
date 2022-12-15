@@ -46,11 +46,13 @@ def get_scores(rootfile, model, dataset_name=''):
                 ak8_pt   = event[b'JetsAK8.fCoordinates.fPt'][0]
                 muons = event[b'Muons']
                 electrons = event[b'Electrons']
-                zpart = get_zprime(event)
-                z_mass = zpart.mass
-                z_pt = zpart.pt
-                z_phi = zpart.phi
-                z_eta = zpart.eta
+                print('get zprime')
+                zprime = get_zprime(event)
+                z_mass = zprime.mass
+                z_pt = zprime.pt
+                z_phi = zprime.phi
+                z_eta = zprime.eta
+                print('got zprime')
                 # adding ak4 jets leading and subleading jets
                 ak4_lead = get_ak4_lead(event)
                 ak4_subl = get_ak4_subl(event)
