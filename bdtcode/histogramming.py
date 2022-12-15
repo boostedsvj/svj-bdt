@@ -77,7 +77,8 @@ def get_scores(rootfile, model, dataset_name=''):
                     ak4_lead.eta, ak4_lead.phi, ak4_lead.pt, ak4_subl.eta, ak4_subl.phi, ak4_subl.pt,
                     #muons, electrons, ak8_pt])
                     muons, electrons, ak8_pt, z_pt, z_phi, z_eta])
-
+                for thing in X_histogram:
+                    print(thing.shape)
         except IndexError:
             print(f'Problem with {rootfile}; saving {cutflow["preselection"]} good entries')
         except Exception as e:
