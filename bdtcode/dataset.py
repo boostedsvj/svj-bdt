@@ -426,7 +426,7 @@ def process_signal(rootfiles, outfile=None):
         #X.append([subl.rt])'''
 
         X.append([
-            sublak15.pt, sublak15.eta, sublak15.phi, sublak15.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
+            sublak15.pt, sublak15.eta, sublak15.phi, sublak15.ecfM2b1, sublak15.ecfD2b1, sublak15.ecfC2b1, sublak15.ecfN2b2,
             leadak8.pt,
             leadak4.pt, leadak4.eta, leadak4.phi,
             sublak4.pt, sublak4.eta, sublak4.phi,
