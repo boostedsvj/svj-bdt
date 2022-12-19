@@ -307,6 +307,19 @@ def get_ak4_lead(event):
     ak4_lead = jets[0]
     return ak4_lead
 
+def get_ak8_lead(event):
+    """
+    Returns subleading jet
+    """
+    jets = FourVectorArray(
+        event[b'JetsAK8.fCoordinates.fPt'],
+        event[b'JetsAK8.fCoordinates.fEta'],
+        event[b'JetsAK8.fCoordinates.fPhi'],
+        event[b'JetsAK8.fCoordinates.fE'],
+        )
+    ak8_lead = jets[0]
+    return ak8_lead
+
 
 def get_subl(event):
     """
@@ -344,8 +357,8 @@ def get_subl(event):
     subl.mt = calculate_mt(subl, event[b'MET'], metdphi)
     return subl
 
-
-def get_zprime(event):
+def get_zprime(rootfile):
+#def get_zprime(event):
     for event in uptools.iter_events(rootfile):
         genparticles = FourVectorArray(
             event[b'GenParticles.fCoordinates.fPt'],
@@ -383,14 +396,17 @@ def process_signal(rootfiles, outfile=None):
 
         zprime = genparticles[genparticles.pdgid == 4900023]
         if len(zprime) == 0: continue
-        zprime = zprime[0]
+        #zprime = zprime[0]
 
-        dark_quarks = genparticles[(np.abs(genparticles.pdgid) == 4900101) & (genparticles.status == 71)]
-        if len(dark_quarks) != 2: continue
+        '''dark_quarks = genparticles[(np.abs(genparticles.pdgid) == 4900101) & (genparticles.status == 71)]
+        if len(dark_quarks) != 2: continue'''
 
-        subl = get_subl(event)
+        sublak15 = get_subl(event)
+        leadak8  = get_ak8_lead(event)
+        sublak4  = get_ak4_subl(event)
+        leadak4  = get_ak4_lead(event)
 
-        # Verify zprime and dark_quarks are within 1.5 of the jet
+        '''# Verify zprime and dark_quarks are within 1.5 of the jet
         if not all(calc_dr(subl.eta, subl.phi, obj.eta, obj.phi) < 1.5 for obj in [
             zprime, dark_quarks[0], dark_quarks[1]
             ]):
@@ -407,7 +423,15 @@ def process_signal(rootfiles, outfile=None):
             subl.pt, subl.eta, subl.phi, subl.energy,
             zprime.pt, zprime.eta, zprime.phi, zprime.energy
             ])
-        #X.append([subl.rt])
+        #X.append([subl.rt])'''
+
+        X.append([
+            sublak15.pt, sublak15.eta, sublak15.phi, sublak15.ecfM2b1, subl.ecfD2b1, subl.ecfC2b1, subl.ecfN2b2,
+            leadak8.pt,
+            leadak4.pt, leadak4.eta, leadak4.phi,
+            sublak4.pt, sublak4.eta, sublak4.phi,
+            zprime.pt, zprime.eta, zprime.phi
+            ])
 
     print(f'n_total: {n_total}; n_presel: {n_presel}; n_final: {n_final} ({100.*n_final/float(n_total):.2f}%)')
 
