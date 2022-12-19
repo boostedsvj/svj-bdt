@@ -346,6 +346,7 @@ def get_subl(event):
 
 
 def get_zprime(event):
+    for event in uptools.iter_events(rootfiles):
         genparticles = FourVectorArray(
             event[b'GenParticles.fCoordinates.fPt'],
             event[b'GenParticles.fCoordinates.fEta'],
@@ -355,7 +356,7 @@ def get_zprime(event):
             status=event[b'GenParticles_Status']
             )
         zprime = genparticles[genparticles.pdgid == 4900023]
-        #if len(zprime) == 0: continue
+        if len(zprime) == 0: continue
         zprime = zprime[0]
         return zprime
 
