@@ -424,7 +424,7 @@ def process_signal(rootfiles, outfile=None):
             zprime.pt, zprime.eta, zprime.phi, zprime.energy
             ])
         #X.append([subl.rt])'''
-        if len(sublak15.pt) < 2 or len(leadak8.pt) < 1 or len(sublak4.pt) < 2 or len(zprime.pt) == 0: continue
+        if len(event[b'JetsAK15.fCoordinates.fPt']) < 2 or abs(event[b'JetsAK15.fCoordinates.fEta'][1]) > 2.4 or len(event[b'JetsAK8.fCoordinates.fPt']) < 1 or len(event[b'Jets.fCoordinates.fPt']) < 2: continue
         X.append([
             sublak15.pt, sublak15.eta, sublak15.phi, sublak15.ecfM2b1, sublak15.ecfD2b1, sublak15.ecfC2b1, sublak15.ecfN2b2,
             leadak8.pt,
