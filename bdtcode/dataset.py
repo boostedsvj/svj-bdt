@@ -410,6 +410,8 @@ def process_signal(rootfiles, outfile=None):
         leadak8  = get_ak8_lead(event)
         sublak4  = get_ak4_subl(event)
         leadak4  = get_ak4_lead(event)
+        met = event[b'MET']
+        metphi = event[b'METPhi'] 
         print("33333")
 
         '''# Verify zprime and dark_quarks are within 1.5 of the jet
@@ -435,7 +437,8 @@ def process_signal(rootfiles, outfile=None):
             leadak8.pt,
             leadak4.pt, leadak4.eta, leadak4.phi,
             sublak4.pt, sublak4.eta, sublak4.phi,
-            zprime.pt, zprime.eta, zprime.phi
+            zprime.pt, zprime.eta, zprime.phi,
+            met, metphi
             ])
         print("44444")
     print(f'n_total: {n_total}; n_presel: {n_presel}; n_final: {n_final} ({100.*n_final/float(n_total):.2f}%)')
