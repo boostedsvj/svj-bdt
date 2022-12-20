@@ -395,7 +395,9 @@ def process_signal(rootfiles, outfile=None):
             )
 
         zprime = genparticles[genparticles.pdgid == 4900023]
+        print("11111")
         if len(zprime) == 0: continue
+        print("22222")
         #zprime = zprime[0]
 
         '''dark_quarks = genparticles[(np.abs(genparticles.pdgid) == 4900101) & (genparticles.status == 71)]
@@ -405,6 +407,7 @@ def process_signal(rootfiles, outfile=None):
         leadak8  = get_ak8_lead(event)
         sublak4  = get_ak4_subl(event)
         leadak4  = get_ak4_lead(event)
+        print("33333")
 
         '''# Verify zprime and dark_quarks are within 1.5 of the jet
         if not all(calc_dr(subl.eta, subl.phi, obj.eta, obj.phi) < 1.5 for obj in [
@@ -425,6 +428,7 @@ def process_signal(rootfiles, outfile=None):
             ])
         #X.append([subl.rt])'''
         if len(event[b'JetsAK15.fCoordinates.fPt']) < 2 or abs(event[b'JetsAK15.fCoordinates.fEta'][1]) > 2.4 or len(event[b'JetsAK8.fCoordinates.fPt']) < 1 or len(event[b'Jets.fCoordinates.fPt']) < 2: continue
+        print("44444")
         X.append([
             sublak15.pt, sublak15.eta, sublak15.phi, sublak15.ecfM2b1, sublak15.ecfD2b1, sublak15.ecfC2b1, sublak15.ecfN2b2,
             leadak8.pt,
@@ -432,7 +436,7 @@ def process_signal(rootfiles, outfile=None):
             sublak4.pt, sublak4.eta, sublak4.phi,
             zprime.pt, zprime.eta, zprime.phi
             ])
-
+        print("55555")
     print(f'n_total: {n_total}; n_presel: {n_presel}; n_final: {n_final} ({100.*n_final/float(n_total):.2f}%)')
 
     if outfile is None: outfile = 'data/signal.npz'
