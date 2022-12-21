@@ -413,7 +413,7 @@ def process_signal(rootfiles, outfile=None):
         met = event[b'MET']
         metphi = event[b'METPhi'] 
         sublak15.mass = calculate_mass(sublak15)
-        zprime.mass = calculate(zprime)
+        zprime.mass = calculate_mass(zprime)
         print("33333")
         leadak15pt = event[b'JetsAK15.fCoordinates.fPt'][0]
         leadak15phi = event[b'JetsAK15.fCoordinates.fPhi'][0]
