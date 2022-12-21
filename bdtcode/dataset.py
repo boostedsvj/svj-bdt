@@ -413,6 +413,9 @@ def process_signal(rootfiles, outfile=None):
         met = event[b'MET']
         metphi = event[b'METPhi'] 
         print("33333")
+        leadak15pt = event[b'JetsAK15.fCoordinates.fPt'][0]
+        leadak15phi = event[b'JetsAK15.fCoordinates.fPhi'][0]
+        leadak15eta = event[b'JetsAK15.fCoordinates.fEta'][0]
 
         '''# Verify zprime and dark_quarks are within 1.5 of the jet
         if not all(calc_dr(subl.eta, subl.phi, obj.eta, obj.phi) < 1.5 for obj in [
@@ -435,6 +438,7 @@ def process_signal(rootfiles, outfile=None):
         X.append([
             sublak15.pt, sublak15.eta, sublak15.phi, sublak15.ecfM2b1, sublak15.ecfD2b1, sublak15.ecfC2b1, sublak15.ecfN2b2,
             leadak8.pt,
+            leadak15pt, leadak15phi, leadak15eta,
             leadak4.pt, leadak4.eta, leadak4.phi,
             sublak4.pt, sublak4.eta, sublak4.phi,
             zprime.pt, zprime.eta, zprime.phi,
