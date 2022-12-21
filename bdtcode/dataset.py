@@ -412,6 +412,8 @@ def process_signal(rootfiles, outfile=None):
         leadak4  = get_ak4_lead(event)
         met = event[b'MET']
         metphi = event[b'METPhi'] 
+        sublak15.mass = calculate_mass(sublak15)
+        zprime.mass = calculate(zprime)
         print("33333")
         leadak15pt = event[b'JetsAK15.fCoordinates.fPt'][0]
         leadak15phi = event[b'JetsAK15.fCoordinates.fPhi'][0]
@@ -436,12 +438,12 @@ def process_signal(rootfiles, outfile=None):
             ])
         #X.append([subl.rt])'''
         X.append([
-            sublak15.pt, sublak15.eta, sublak15.phi, sublak15.ecfM2b1, sublak15.ecfD2b1, sublak15.ecfC2b1, sublak15.ecfN2b2,
+            sublak15.pt, sublak15.eta, sublak15.phi, sublak15.mass, sublak15.energy, sublak15.ecfM2b1, sublak15.ecfD2b1, sublak15.ecfC2b1, sublak15.ecfN2b2,
             leadak8.pt,
             leadak15pt, leadak15phi, leadak15eta,
             leadak4.pt, leadak4.eta, leadak4.phi,
             sublak4.pt, sublak4.eta, sublak4.phi,
-            zprime.pt, zprime.eta, zprime.phi,
+            zprime.pt, zprime.eta, zprime.phi, zprime.energy, zprime.mass,
             met, metphi
             ])
         print("44444")
